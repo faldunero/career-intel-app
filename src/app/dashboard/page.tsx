@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import LogoutButton from "./logout-button";
 import CareerScoreCard from "./career-score-card";
 
 export default async function DashboardPage() {
@@ -112,37 +111,15 @@ export default async function DashboardPage() {
   const displayName = profile?.full_name || user.email;
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10">
-      <div className="mx-auto max-w-3xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-slate-500">Career Intelligence AI</p>
-            <h1 className="text-2xl font-semibold text-slate-900">
-              Hola, {displayName} 👋
-            </h1>
-          </div>
-          <LogoutButton />
-        </div>
+    <div className="mx-auto max-w-3xl">
+      <h1 className="text-2xl font-semibold text-slate-900">
+        Hola, {displayName} 👋
+      </h1>
 
-        {profileError && (
-          <div className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-xs text-red-700">
-            <strong>Debug — error real al leer tu perfil:</strong>
-            <pre className="mt-1 whitespace-pre-wrap">
-              {JSON.stringify(profileError, null, 2)}
-            </pre>
-          </div>
-        )}
-        {!profileError && !profile && (
-          <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-700">
-            <strong>Debug:</strong> la consulta no dio error, pero
-            &quot;profile&quot; vino vacío (0 filas).
-          </div>
-        )}
-
-        <div className="mt-8 flex flex-col gap-4">
-          <CareerScoreCard
-            initialScore={profile?.career_score ?? null}
-            initialAnalysis={profile?.career_score_analysis ?? null}
+      <div className="mt-8 flex flex-col gap-4">
+        <CareerScoreCard
+          initialScore={profile?.career_score ?? null}
+          initialAnalysis={profile?.career_score_analysis ?? null}
           />
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -306,73 +283,7 @@ export default async function DashboardPage() {
               Subir / ver CV
             </Link>
           </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-medium text-slate-900">
-              Matching de vacantes
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Pega una oferta laboral y descubre qué tan compatible eres.
-            </p>
-            <Link
-              href="/dashboard/matching"
-              className="mt-4 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
-            >
-              Analizar vacante
-            </Link>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-medium text-slate-900">
-              CRM de oportunidades
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Registra tus postulaciones y haz seguimiento a cada una.
-            </p>
-            <Link
-              href="/dashboard/opportunities"
-              className="mt-4 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
-            >
-              Ver oportunidades
-            </Link>
-          </div>
-
-          {profile?.role === "administrador" && (
-            <div className="rounded-2xl border border-purple-200 bg-purple-50 p-6">
-              <h2 className="text-lg font-medium text-purple-900">
-                Panel de administrador
-              </h2>
-              <p className="mt-1 text-sm text-purple-800">
-                Gestiona usuarios, roles y asignaciones de coach.
-              </p>
-              <Link
-                href="/dashboard/admin"
-                className="mt-4 inline-block rounded-lg bg-purple-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-800"
-              >
-                Abrir panel
-              </Link>
-            </div>
-          )}
-
-          {(profile?.role === "coach" ||
-            profile?.role === "administrador") && (
-            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-6">
-              <h2 className="text-lg font-medium text-blue-900">
-                Mis usuarios asignados
-              </h2>
-              <p className="mt-1 text-sm text-blue-800">
-                Revisa el progreso de los usuarios que tienes asignados.
-              </p>
-              <Link
-                href="/dashboard/coach"
-                className="mt-4 inline-block rounded-lg bg-blue-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-800"
-              >
-                Ver usuarios
-              </Link>
-            </div>
-          )}
         </div>
       </div>
-    </main>
   );
 }
