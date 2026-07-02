@@ -33,6 +33,15 @@ export default async function DashboardPage() {
     .limit(1)
     .maybeSingle();
 
+  const { data: latestLinkedin } = await supabase
+    .from("linkedin_profiles")
+    .select("linkedin_score")
+    .eq("user_id", user.id)
+    .not("linkedin_score", "is", null)
+    .order("analyzed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   const { data: opportunities } = await supabase
     .from("opportunities")
     .select("status, company, applied_at, updated_at")
@@ -200,8 +209,29 @@ export default async function DashboardPage() {
             </div>
 
             <p className="mt-4 text-xs text-slate-400">
-              LinkedIn Score y Networking Score: no disponibles todavía
-              (requieren la fase de análisis de LinkedIn).
+              {latestLinkedin?.linkedin_score !== undefined &&
+              latestLinkedin?.linkedin_score !== null ? (
+                <>
+                  LinkedIn Score:{" "}
+                  <span className="font-medium text-slate-600">
+                    {latestLinkedin.linkedin_score}/100
+                  </span>{" "}
+                  ·{" "}
+                  <Link href="/dashboard/linkedin" className="underline">
+                    ver detalle
+                  </Link>
+                  . Networking Score: no disponible todavía.
+                </>
+              ) : (
+                <>
+                  LinkedIn Score y Networking Score: no disponibles
+                  todavía —{" "}
+                  <Link href="/dashboard/linkedin" className="underline">
+                    analiza tu LinkedIn
+                  </Link>{" "}
+                  para calcular el primero.
+                </>
+              )}
             </p>
           </div>
 
