@@ -97,6 +97,52 @@ export default function ProfileForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [autofilling, setAutofilling] = useState(false);
+  const [autofillMsg, setAutofillMsg] = useState<string | null>(null);
+  const [autofillError, setAutofillError] = useState<string | null>(null);
+
+  async function handleAutofill() {
+    setAutofilling(true);
+    setAutofillError(null);
+    setAutofillMsg(null);
+
+    try {
+      const res = await fetch("/api/profile/autofill", { method: "POST" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setAutofillError(data.error ?? "Error al autocompletar");
+        setAutofilling(false);
+        return;
+      }
+
+      const fields = data.fields as Record<string, string | number | null>;
+      let filledCount = 0;
+
+      setForm((prev) => {
+        const next = { ...prev };
+        for (const key of Object.keys(fields) as (keyof typeof prev)[]) {
+          if (key === "target_role") continue; // nunca se autocompleta
+          const incoming = fields[key];
+          const isEmpty = !prev[key];
+          if (isEmpty && incoming !== null && incoming !== undefined) {
+            next[key] = String(incoming);
+            filledCount++;
+          }
+        }
+        return next;
+      });
+
+      setAutofillMsg(
+        filledCount > 0
+          ? `${filledCount} campo(s) completados desde tu CV. Revisa y guarda.`
+          : "No había campos vacíos que completar (o el CV no traía esa información)."
+      );
+    } catch {
+      setAutofillError("No se pudo conectar con el servidor");
+    }
+    setAutofilling(false);
+  }
 
   function update(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -163,7 +209,38 @@ export default function ProfileForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-slate-900">
+              ¿Ya subiste tu CV?
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Completa automáticamente los campos vacíos de abajo con lo
+              que ya está en tu CV. Nunca sobrescribe lo que ya
+              escribiste, y nunca inventa un cargo objetivo — eso lo
+              defines tú.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAutofill}
+            disabled={autofilling}
+            className="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+          >
+            {autofilling ? "Leyendo tu CV..." : "Autocompletar desde mi CV"}
+          </button>
+        </div>
+        {autofillMsg && (
+          <p className="mt-2 text-xs text-green-700">{autofillMsg}</p>
+        )}
+        {autofillError && (
+          <p className="mt-2 text-xs text-red-600">{autofillError}</p>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
       {/* Datos básicos */}
       <section className="flex flex-col gap-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -393,5 +470,6 @@ export default function ProfileForm({
         </button>
       </div>
     </form>
+    </div>
   );
 }
