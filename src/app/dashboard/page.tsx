@@ -321,6 +321,41 @@ export default async function DashboardPage() {
               Ver oportunidades
             </Link>
           </div>
+
+          {profile?.role === "administrador" && (
+            <div className="rounded-2xl border border-purple-200 bg-purple-50 p-6">
+              <h2 className="text-lg font-medium text-purple-900">
+                Panel de administrador
+              </h2>
+              <p className="mt-1 text-sm text-purple-800">
+                Gestiona usuarios, roles y asignaciones de coach.
+              </p>
+              <Link
+                href="/dashboard/admin"
+                className="mt-4 inline-block rounded-lg bg-purple-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-800"
+              >
+                Abrir panel
+              </Link>
+            </div>
+          )}
+
+          {(profile?.role === "coach" ||
+            profile?.role === "administrador") && (
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-6">
+              <h2 className="text-lg font-medium text-blue-900">
+                Mis usuarios asignados
+              </h2>
+              <p className="mt-1 text-sm text-blue-800">
+                Revisa el progreso de los usuarios que tienes asignados.
+              </p>
+              <Link
+                href="/dashboard/coach"
+                className="mt-4 inline-block rounded-lg bg-blue-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-800"
+              >
+                Ver usuarios
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </main>
