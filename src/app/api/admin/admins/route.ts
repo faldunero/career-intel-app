@@ -40,16 +40,14 @@ export async function POST(request: Request) {
     );
   }
 
-  // El trigger handle_new_user ya creó la fila en profiles con role
-  // 'usuario' por defecto. La subimos a 'coach'.
   const { error: roleError } = await admin
     .from("profiles")
-    .update({ role: "coach" })
+    .update({ role: "administrador" })
     .eq("id", created.user.id);
 
   if (roleError) {
     return NextResponse.json(
-      { error: `Cuenta creada, pero no se pudo asignar el rol coach: ${roleError.message}` },
+      { error: `Cuenta creada, pero no se pudo asignar el rol administrador: ${roleError.message}` },
       { status: 500 }
     );
   }
