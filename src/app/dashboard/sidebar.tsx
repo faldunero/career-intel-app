@@ -40,6 +40,12 @@ function ScoreBadge({ score }: { score: number | null }) {
   );
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  usuario: "Usuario",
+  coach: "Coach",
+  administrador: "Administrador",
+};
+
 export default function Sidebar({
   role,
   displayName,
@@ -53,41 +59,43 @@ export default function Sidebar({
 
   const groups: NavGroup[] = [];
 
+  // Cada rol ve solo lo que le corresponde — nada de herramientas de
+  // búsqueda de empleo para admin/coach, esas son propias de "usuario".
   if (role === "administrador") {
     groups.push({
       title: "Administración",
       items: [{ label: "Panel de administrador", href: "/dashboard/admin" }],
     });
-  }
-
-  if (role === "coach") {
+  } else if (role === "coach") {
     groups.push({
       title: "Coach",
       items: [{ label: "Mis usuarios asignados", href: "/dashboard/coach" }],
     });
+  } else {
+    groups.push(
+      {
+        title: "Mi carrera",
+        items: [
+          { label: "Resumen", href: "/dashboard" },
+          { label: "Perfil profesional", href: "/dashboard/profile" },
+          { label: "LinkedIn", href: "/dashboard/linkedin" },
+        ],
+      },
+      {
+        title: "Documentos y matching",
+        items: [
+          { label: "Mi CV", href: "/dashboard/cv" },
+          { label: "Matching de vacantes", href: "/dashboard/matching" },
+        ],
+      },
+      {
+        title: "Oportunidades",
+        items: [
+          { label: "CRM de oportunidades", href: "/dashboard/opportunities" },
+        ],
+      }
+    );
   }
-
-  groups.push(
-    {
-      title: "Mi carrera",
-      items: [
-        { label: "Resumen", href: "/dashboard" },
-        { label: "Perfil profesional", href: "/dashboard/profile" },
-        { label: "LinkedIn", href: "/dashboard/linkedin" },
-      ],
-    },
-    {
-      title: "Documentos y matching",
-      items: [
-        { label: "Mi CV", href: "/dashboard/cv" },
-        { label: "Matching de vacantes", href: "/dashboard/matching" },
-      ],
-    },
-    {
-      title: "Oportunidades",
-      items: [{ label: "CRM de oportunidades", href: "/dashboard/opportunities" }],
-    }
-  );
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
     Object.fromEntries(groups.map((g) => [g.title, true]))
@@ -112,8 +120,11 @@ export default function Sidebar({
         <p className="mt-1 truncate text-base font-semibold text-white">
           {displayName}
         </p>
+        <p className="mt-0.5 text-xs font-medium text-slate-400">
+          {ROLE_LABELS[role] ?? role}
+        </p>
 
-        <ScoreBadge score={careerScore} />
+        {role === "usuario" && <ScoreBadge score={careerScore} />}
 
         <div className="mt-3">
           <LogoutButton />

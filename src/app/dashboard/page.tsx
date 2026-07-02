@@ -16,13 +16,24 @@ export default async function DashboardPage() {
 
   // Leemos el perfil desde la tabla `profiles` (se crea automáticamente
   // vía trigger al registrarse, ver supabase/migrations/0001_init.sql)
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select(
       "full_name, role, profile_completed, target_companies, career_score, career_score_analysis"
     )
     .eq("id", user.id)
     .single();
+
+  // El "Resumen" de búsqueda de empleo es propio del rol usuario.
+  // Admin y coach no buscan empleo a través de la plataforma, así que
+  // no tiene sentido mostrarles estos datos — los mandamos directo a
+  // su panel correspondiente.
+  if (profile?.role === "administrador") {
+    redirect("/dashboard/admin");
+  }
+  if (profile?.role === "coach") {
+    redirect("/dashboard/coach");
+  }
 
   const { data: latestCv } = await supabase
     .from("cvs")
