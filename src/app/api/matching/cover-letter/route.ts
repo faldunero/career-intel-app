@@ -115,6 +115,7 @@ Redacta la carta de presentación siguiendo las instrucciones del sistema.`;
         body: JSON.stringify({
           model: GROQ_MODEL,
           temperature: 0.5,
+          max_tokens: 1024,
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: userPrompt },

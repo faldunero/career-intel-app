@@ -124,6 +124,7 @@ responde solo con el JSON pedido.`;
         body: JSON.stringify({
           model: GROQ_MODEL,
           temperature: 0.3,
+          max_tokens: 4096,
           response_format: { type: "json_object" },
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
