@@ -104,10 +104,18 @@ export default async function DashboardPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm text-slate-500">
-              Próximo paso (Fase 4): matching de vacantes contra tu perfil
-              y tu CV, cuando pegues una oferta laboral.
+            <h2 className="text-lg font-medium text-slate-900">
+              Matching de vacantes
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Pega una oferta laboral y descubre qué tan compatible eres.
             </p>
+            <Link
+              href="/dashboard/matching"
+              className="mt-4 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+            >
+              Analizar vacante
+            </Link>
           </div>
         </div>
       </div>
