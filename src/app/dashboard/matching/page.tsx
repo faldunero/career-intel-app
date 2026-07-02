@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import MatchingForm from "./matching-form";
 import DeleteMatchButton from "./delete-match-button";
+import LocalDateTime from "./local-datetime";
 
 export default async function MatchingPage() {
   const supabase = await createClient();
@@ -74,16 +75,7 @@ export default async function MatchingPage() {
                       {m.company ? ` — ${m.company}` : ""}
                     </p>
                     <p className="text-xs text-slate-400">
-                      {new Date(m.created_at).toLocaleDateString("es-CL", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}{" "}
-                      ·{" "}
-                      {new Date(m.created_at).toLocaleTimeString("es-CL", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      <LocalDateTime iso={m.created_at} />
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
