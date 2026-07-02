@@ -1,0 +1,95 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import TaskStatusSelector from "./task-status-selector";
+
+export default async function TasksPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: tasks } = await supabase
+    .from("coach_tasks")
+    .select("id, title, description, due_date, status, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  const all = tasks ?? [];
+  const pendientes = all.filter((t) => t.status !== "completada");
+  const completadas = all.filter((t) => t.status === "completada");
+
+  return (
+    <div className="mx-auto max-w-2xl">
+      <h1 className="text-2xl font-semibold text-slate-900">
+        Tareas asignadas por tu coach
+      </h1>
+      <p className="mt-1 text-sm text-slate-500">
+        Marca cada tarea con su estado a medida que avanzas.
+      </p>
+
+      <div className="mt-6 flex flex-col gap-3">
+        {all.length === 0 && (
+          <p className="text-sm text-slate-500">
+            Todavía no tienes tareas asignadas. Si tienes un coach
+            asignado, va a asignarte tareas desde su panel.
+          </p>
+        )}
+
+        {pendientes.map((t) => (
+          <div
+            key={t.id}
+            className="rounded-xl border border-slate-200 bg-white p-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-slate-900">
+                  {t.title}
+                </p>
+                {t.description && (
+                  <p className="mt-1 text-sm text-slate-600">
+                    {t.description}
+                  </p>
+                )}
+                {t.due_date && (
+                  <p className="mt-1 text-xs text-slate-400">
+                    Vence:{" "}
+                    {new Date(t.due_date + "T00:00:00").toLocaleDateString(
+                      "es-CL"
+                    )}
+                  </p>
+                )}
+              </div>
+              <TaskStatusSelector taskId={t.id} currentStatus={t.status} />
+            </div>
+          </div>
+        ))}
+
+        {completadas.length > 0 && (
+          <>
+            <h2 className="mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Completadas
+            </h2>
+            {completadas.map((t) => (
+              <div
+                key={t.id}
+                className="rounded-xl border border-slate-100 bg-slate-50 p-4 opacity-70"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-medium text-slate-700 line-through">
+                    {t.title}
+                  </p>
+                  <TaskStatusSelector taskId={t.id} currentStatus={t.status} />
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

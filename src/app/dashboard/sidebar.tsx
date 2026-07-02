@@ -79,6 +79,7 @@ export default function Sidebar({
           { label: "Resumen", href: "/dashboard" },
           { label: "Perfil profesional", href: "/dashboard/profile" },
           { label: "LinkedIn", href: "/dashboard/linkedin" },
+          { label: "Tareas", href: "/dashboard/tasks" },
         ],
       },
       {
