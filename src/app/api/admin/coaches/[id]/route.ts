@@ -1,31 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin-guard";
 
 export const runtime = "nodejs";
-
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { ok: false as const, status: 401, error: "No autenticado" };
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "administrador") {
-    return { ok: false as const, status: 403, error: "Solo un administrador puede hacer esto" };
-  }
-
-  return { ok: true as const };
-}
 
 export async function PATCH(
   request: Request,
