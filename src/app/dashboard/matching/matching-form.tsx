@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ConvertToOpportunityButton from "./convert-to-opportunity-button";
+import CoverLetterButton from "./cover-letter-button";
 
 type Analysis = {
   empresa: string | null;
@@ -216,12 +217,15 @@ export default function MatchingForm({
           />
 
           {matchId && (
-            <ConvertToOpportunityButton
-              matchId={matchId}
-              userId={userId}
-              jobTitle={result.cargo}
-              company={result.empresa}
-            />
+            <div className="flex flex-col gap-3">
+              <ConvertToOpportunityButton
+                matchId={matchId}
+                userId={userId}
+                jobTitle={result.cargo}
+                company={result.empresa}
+              />
+              <CoverLetterButton matchId={matchId} />
+            </div>
           )}
         </div>
       )}

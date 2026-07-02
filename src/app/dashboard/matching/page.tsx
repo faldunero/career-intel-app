@@ -5,6 +5,7 @@ import MatchingForm from "./matching-form";
 import DeleteMatchButton from "./delete-match-button";
 import LocalDateTime from "./local-datetime";
 import ConvertToOpportunityButton from "./convert-to-opportunity-button";
+import CoverLetterButton from "./cover-letter-button";
 
 export default async function MatchingPage() {
   const supabase = await createClient();
@@ -29,7 +30,7 @@ export default async function MatchingPage() {
   const { data: matches } = await supabase
     .from("job_matches")
     .select(
-      "id, job_title, company, matching_general, matching_ats, matching_tecnico, matching_liderazgo, matching_cultural, matching_experiencia, analysis, created_at"
+      "id, job_title, company, matching_general, matching_ats, matching_tecnico, matching_liderazgo, matching_cultural, matching_experiencia, analysis, created_at, cover_letter"
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
@@ -115,12 +116,16 @@ export default async function MatchingPage() {
                   </div>
                 )}
 
-                <div className="mt-3">
+                <div className="mt-3 flex flex-col gap-3">
                   <ConvertToOpportunityButton
                     matchId={m.id}
                     userId={user.id}
                     jobTitle={m.job_title}
                     company={m.company}
+                  />
+                  <CoverLetterButton
+                    matchId={m.id}
+                    initialLetter={m.cover_letter}
                   />
                 </div>
               </div>
