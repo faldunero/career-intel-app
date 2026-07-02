@@ -37,7 +37,9 @@ export default async function AdminPage() {
     .select("id, coach_id, user_id");
 
   const users = allUsers ?? [];
+  const admins = users.filter((u) => u.role === "administrador");
   const coaches = users.filter((u) => u.role === "coach");
+  const nonAdminUsers = users.filter((u) => u.role !== "administrador");
   const assignmentsList = assignments ?? [];
 
   // Mapa: user_id -> coach_id actual (si tiene uno)
@@ -55,6 +57,28 @@ export default async function AdminPage() {
       <h1 className="text-2xl font-semibold text-slate-900">
         Panel de administrador
       </h1>
+
+      <div className="mt-6 rounded-2xl border border-purple-200 bg-purple-50 p-6">
+        <h2 className="text-lg font-medium text-purple-900">
+          Administradores ({admins.length})
+        </h2>
+        <div className="mt-4 flex flex-col gap-2">
+          {admins.map((a) => (
+            <div
+              key={a.id}
+              className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm"
+            >
+              <div>
+                <p className="font-medium text-slate-900">
+                  {a.full_name ?? "Sin nombre"}
+                </p>
+                <p className="text-xs text-slate-500">{a.email}</p>
+              </div>
+              <RoleSelector userId={a.id} currentRole={a.role} />
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
@@ -83,7 +107,7 @@ export default async function AdminPage() {
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-medium text-slate-900">
-            Usuarios ({users.length})
+            Usuarios ({nonAdminUsers.length})
           </h2>
           <CreateUserForm coaches={coaches} />
         </div>
@@ -100,7 +124,7 @@ export default async function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {nonAdminUsers.map((u) => (
                 <tr key={u.id} className="border-b border-slate-100">
                   <td className="py-2 pr-4">{u.full_name ?? "—"}</td>
                   <td className="py-2 pr-4 text-slate-500">
