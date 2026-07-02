@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import MatchingForm from "./matching-form";
+import DeleteMatchButton from "./delete-match-button";
 
 export default async function MatchingPage() {
   const supabase = await createClient();
@@ -77,14 +78,22 @@ export default async function MatchingPage() {
                         day: "2-digit",
                         month: "short",
                         year: "numeric",
+                      })}{" "}
+                      ·{" "}
+                      {new Date(m.created_at).toLocaleTimeString("es-CL", {
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </p>
                   </div>
-                  {m.matching_general !== null && (
-                    <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                      {m.matching_general}/100
-                    </span>
-                  )}
+                  <div className="flex shrink-0 items-center gap-3">
+                    {m.matching_general !== null && (
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                        {m.matching_general}/100
+                      </span>
+                    )}
+                    <DeleteMatchButton matchId={m.id} />
+                  </div>
                 </div>
 
                 {m.analysis && (
