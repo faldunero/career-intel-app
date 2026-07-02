@@ -13,6 +13,11 @@ const STATUS_OPTIONS: { value: string; label: string; color: string }[] = [
   { value: "abandonado", label: "Abandonado", color: "bg-slate-100 text-slate-500" },
 ];
 
+const PRIORITY_OPTIONS = ["Alta", "Media", "Baja"];
+
+const inputClass =
+  "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900";
+
 type Opportunity = {
   id: string;
   company: string | null;
@@ -32,6 +37,25 @@ export default function OpportunityCard({ opp }: { opp: Opportunity }) {
   const supabase = createClient();
   const [status, setStatus] = useState(opp.status);
   const [updating, setUpdating] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [form, setForm] = useState({
+    company: opp.company ?? "",
+    job_title: opp.job_title ?? "",
+    industry: opp.industry ?? "",
+    source: opp.source ?? "",
+    url: opp.url ?? "",
+    priority: opp.priority ?? "Media",
+    next_action: opp.next_action ?? "",
+    next_action_date: opp.next_action_date ?? "",
+    notes: opp.notes ?? "",
+  });
+
+  function update(field: keyof typeof form, value: string) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
 
   const currentOption =
     STATUS_OPTIONS.find((o) => o.value === status) ?? STATUS_OPTIONS[0];
@@ -53,6 +77,137 @@ export default function OpportunityCard({ opp }: { opp: Opportunity }) {
     router.refresh();
   }
 
+  async function handleSaveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+
+    const { error } = await supabase
+      .from("opportunities")
+      .update({
+        company: form.company || null,
+        job_title: form.job_title || null,
+        industry: form.industry || null,
+        source: form.source || null,
+        url: form.url || null,
+        priority: form.priority || null,
+        next_action: form.next_action || null,
+        next_action_date: form.next_action_date || null,
+        notes: form.notes || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", opp.id);
+
+    setSaving(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setEditing(false);
+    router.refresh();
+  }
+
+  if (editing) {
+    return (
+      <form
+        onSubmit={handleSaveEdit}
+        className="flex flex-col gap-3 rounded-xl border border-slate-300 bg-white p-4"
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            className={inputClass}
+            placeholder="Empresa"
+            value={form.company}
+            onChange={(e) => update("company", e.target.value)}
+          />
+          <input
+            className={inputClass}
+            placeholder="Cargo"
+            value={form.job_title}
+            onChange={(e) => update("job_title", e.target.value)}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            className={inputClass}
+            placeholder="Industria"
+            value={form.industry}
+            onChange={(e) => update("industry", e.target.value)}
+          />
+          <input
+            className={inputClass}
+            placeholder="Fuente"
+            value={form.source}
+            onChange={(e) => update("source", e.target.value)}
+          />
+        </div>
+        <input
+          className={inputClass}
+          placeholder="URL de la publicación"
+          value={form.url}
+          onChange={(e) => update("url", e.target.value)}
+        />
+        <select
+          className={inputClass}
+          value={form.priority}
+          onChange={(e) => update("priority", e.target.value)}
+        >
+          {PRIORITY_OPTIONS.map((p) => (
+            <option key={p} value={p}>
+              Prioridad {p}
+            </option>
+          ))}
+        </select>
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            className={inputClass}
+            placeholder="Próxima acción"
+            value={form.next_action}
+            onChange={(e) => update("next_action", e.target.value)}
+          />
+          <input
+            type="date"
+            className={inputClass}
+            value={form.next_action_date}
+            onChange={(e) => update("next_action_date", e.target.value)}
+          />
+        </div>
+        <textarea
+          className={inputClass}
+          rows={2}
+          placeholder="Observaciones"
+          value={form.notes}
+          onChange={(e) => update("notes", e.target.value)}
+        />
+
+        {error && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+            {error}
+          </p>
+        )}
+
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
+          >
+            {saving ? "Guardando..." : "Guardar cambios"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          >
+            Cancelar
+          </button>
+        </div>
+      </form>
+    );
+  }
+
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-start justify-between gap-3">
@@ -67,12 +222,20 @@ export default function OpportunityCard({ opp }: { opp: Opportunity }) {
               .join(" · ")}
           </p>
         </div>
-        <button
-          onClick={handleDelete}
-          className="shrink-0 text-xs font-medium text-red-500 underline hover:text-red-700"
-        >
-          Eliminar
-        </button>
+        <div className="flex shrink-0 items-center gap-3">
+          <button
+            onClick={() => setEditing(true)}
+            className="text-xs font-medium text-slate-500 underline hover:text-slate-800"
+          >
+            Editar
+          </button>
+          <button
+            onClick={handleDelete}
+            className="text-xs font-medium text-red-500 underline hover:text-red-700"
+          >
+            Eliminar
+          </button>
+        </div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
