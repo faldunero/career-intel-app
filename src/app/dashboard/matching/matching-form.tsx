@@ -102,6 +102,12 @@ export default function MatchingForm({
     setLoading(false);
   }
 
+  function handleClear() {
+    setJobDescription("");
+    setResult(null);
+    setError(null);
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {!hasCv && (
@@ -138,13 +144,23 @@ export default function MatchingForm({
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={loading || jobDescription.trim().length < 50}
-          className="self-start rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
-        >
-          {loading ? "Analizando..." : "Analizar matching"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={loading || jobDescription.trim().length < 50}
+            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
+          >
+            {loading ? "Analizando..." : "Analizar matching"}
+          </button>
+          <button
+            type="button"
+            onClick={handleClear}
+            disabled={loading || (!jobDescription && !result && !error)}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+          >
+            Limpiar
+          </button>
+        </div>
       </form>
 
       {result && (
