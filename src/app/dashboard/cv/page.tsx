@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import CvUploadForm from "./cv-upload-form";
 import CvAnalysis from "./cv-analysis";
+import RetryExtraction from "./retry-extraction";
 
 export default async function CvPage() {
   const supabase = await createClient();
@@ -25,7 +27,13 @@ export default async function CvPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10">
       <div className="mx-auto max-w-2xl">
-        <p className="text-sm text-slate-500">Career Intelligence AI</p>
+        <Link
+          href="/dashboard"
+          className="text-sm text-slate-500 underline hover:text-slate-800"
+        >
+          ← Volver al dashboard
+        </Link>
+        <p className="mt-3 text-sm text-slate-500">Career Intelligence AI</p>
         <h1 className="text-2xl font-semibold text-slate-900">Tu CV</h1>
         <p className="mt-1 text-sm text-slate-500">
           Sube tu CV en PDF o Word. En esta fase solo confirmamos que
@@ -68,9 +76,12 @@ export default async function CvPage() {
                   </span>
                 </div>
                 {cv.extraction_status === "error" && (
-                  <p className="mt-2 text-xs text-red-600">
-                    {cv.extraction_error}
-                  </p>
+                  <>
+                    <p className="mt-2 text-xs text-red-600">
+                      {cv.extraction_error}
+                    </p>
+                    <RetryExtraction cvId={cv.id} />
+                  </>
                 )}
                 {cv.extraction_status === "done" && cv.extracted_text && (
                   <p className="mt-2 line-clamp-3 text-xs text-slate-500">

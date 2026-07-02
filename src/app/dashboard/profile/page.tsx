@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import ProfileForm from "./profile-form";
 
@@ -22,7 +23,13 @@ export default async function ProfilePage() {
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10">
       <div className="mx-auto max-w-2xl">
-        <p className="text-sm text-slate-500">Career Intelligence AI</p>
+        <Link
+          href="/dashboard"
+          className="text-sm text-slate-500 underline hover:text-slate-800"
+        >
+          ← Volver al dashboard
+        </Link>
+        <p className="mt-3 text-sm text-slate-500">Career Intelligence AI</p>
         <h1 className="text-2xl font-semibold text-slate-900">
           Tu perfil profesional
         </h1>
