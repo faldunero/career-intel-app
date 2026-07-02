@@ -61,9 +61,14 @@ export async function POST(request: Request) {
 
   try {
     if (cv.mime_type === "application/pdf" || cv.file_name.toLowerCase().endsWith(".pdf")) {
-      // pdf-parse v2 usa una API basada en clase, no un default export función
+      // IMPORTANTE: el import de "pdf-parse/worker" debe evaluarse
+      // ANTES que "pdf-parse". Ese módulo configura el CanvasFactory
+      // que pdfjs-dist necesita en un entorno serverless (Vercel no
+      // tiene DOMMatrix/ImageData como el navegador). Sin este orden,
+      // falla con "DOMMatrix is not defined".
+      const { CanvasFactory } = await import("pdf-parse/worker");
       const { PDFParse } = await import("pdf-parse");
-      const parser = new PDFParse({ data: buffer });
+      const parser = new PDFParse({ data: buffer, CanvasFactory });
       const result = await parser.getText();
       await parser.destroy();
       extractedText = result.text;
