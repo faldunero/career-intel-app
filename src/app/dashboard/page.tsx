@@ -17,7 +17,7 @@ export default async function DashboardPage() {
 
   // Leemos el perfil desde la tabla `profiles` (se crea automáticamente
   // vía trigger al registrarse, ver supabase/migrations/0001_init.sql)
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(
       "full_name, role, profile_completed, target_companies, career_score, career_score_analysis"
@@ -123,6 +123,21 @@ export default async function DashboardPage() {
           </div>
           <LogoutButton />
         </div>
+
+        {profileError && (
+          <div className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-xs text-red-700">
+            <strong>Debug — error real al leer tu perfil:</strong>
+            <pre className="mt-1 whitespace-pre-wrap">
+              {JSON.stringify(profileError, null, 2)}
+            </pre>
+          </div>
+        )}
+        {!profileError && !profile && (
+          <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-700">
+            <strong>Debug:</strong> la consulta no dio error, pero
+            &quot;profile&quot; vino vacío (0 filas).
+          </div>
+        )}
 
         <div className="mt-8 flex flex-col gap-4">
           <CareerScoreCard
