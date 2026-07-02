@@ -18,7 +18,7 @@ no lo inventes).
 
 Luego calculas estos puntajes (0-100 cada uno):
 - matching_general: compatibilidad global
-- matching_ats: qué tan bien pasaría el CV un filtro ATS para esta vacante específica (keywords de la oferta presentes en el CV)
+- matching_ats: qué tan bien pasaría el CV un filtro ATS para esta vacante específica (keywords de la oferta presentes en el CV). Si no se te entrega texto de CV, no hay base real para este cálculo: usa null.
 - matching_tecnico: competencias/tecnologías/herramientas
 - matching_liderazgo: experiencia de liderazgo/gestión de equipos si la vacante lo requiere (si no aplica, usa null)
 - matching_cultural: una ESTIMACIÓN basada en señales indirectas (industria, tamaño de empresa, tipo de rol) — deja explícito en el análisis que es una estimación, no un hecho
@@ -35,7 +35,7 @@ markdown, sin backticks) con exactamente esta forma:
   "empresa": string | null,
   "cargo": string | null,
   "matching_general": number,
-  "matching_ats": number,
+  "matching_ats": number | null,
   "matching_tecnico": number,
   "matching_liderazgo": number | null,
   "matching_cultural": number,
@@ -188,7 +188,7 @@ solo con el JSON pedido.`;
     empresa?: string | null;
     cargo?: string | null;
     matching_general?: number;
-    matching_ats?: number;
+    matching_ats?: number | null;
     matching_tecnico?: number;
     matching_liderazgo?: number | null;
     matching_cultural?: number;
@@ -207,6 +207,11 @@ solo con el JSON pedido.`;
   const clamp = (n: unknown) =>
     typeof n === "number" ? Math.max(0, Math.min(100, Math.round(n))) : null;
 
+  // Sin texto de CV no hay ninguna base real para evaluar coincidencia
+  // de keywords ATS — forzamos null aunque el modelo haya devuelto un
+  // número, para no mostrar un score engañoso.
+  const atsScore = cvText ? clamp(analysis.matching_ats) : null;
+
   const { data: inserted, error: insertError } = await supabase
     .from("job_matches")
     .insert({
@@ -216,7 +221,7 @@ solo con el JSON pedido.`;
       company: analysis.empresa ?? null,
       job_description: jobDescription,
       matching_general: clamp(analysis.matching_general),
-      matching_ats: clamp(analysis.matching_ats),
+      matching_ats: atsScore,
       matching_tecnico: clamp(analysis.matching_tecnico),
       matching_liderazgo: clamp(analysis.matching_liderazgo),
       matching_cultural: clamp(analysis.matching_cultural),
@@ -233,5 +238,8 @@ solo con el JSON pedido.`;
     );
   }
 
-  return NextResponse.json({ id: inserted.id, analysis });
+  return NextResponse.json({
+    id: inserted.id,
+    analysis: { ...analysis, matching_ats: atsScore },
+  });
 }

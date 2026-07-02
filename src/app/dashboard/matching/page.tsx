@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import MatchingForm from "./matching-form";
 import DeleteMatchButton from "./delete-match-button";
 import LocalDateTime from "./local-datetime";
+import ConvertToOpportunityButton from "./convert-to-opportunity-button";
 
 export default async function MatchingPage() {
   const supabase = await createClient();
@@ -53,6 +54,7 @@ export default async function MatchingPage() {
 
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <MatchingForm
+            userId={user.id}
             hasCv={Boolean(latestCv)}
             cvFileName={latestCv?.file_name ?? null}
           />
@@ -90,7 +92,9 @@ export default async function MatchingPage() {
 
                 {m.analysis && (
                   <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 sm:grid-cols-3">
-                    <span>ATS: {m.matching_ats ?? "—"}</span>
+                    {m.matching_ats !== null && (
+                      <span>ATS: {m.matching_ats}</span>
+                    )}
                     <span>Técnico: {m.matching_tecnico ?? "—"}</span>
                     <span>Liderazgo: {m.matching_liderazgo ?? "N/A"}</span>
                     <span>Cultural: {m.matching_cultural ?? "—"}</span>
@@ -110,6 +114,15 @@ export default async function MatchingPage() {
                     </ul>
                   </div>
                 )}
+
+                <div className="mt-3">
+                  <ConvertToOpportunityButton
+                    matchId={m.id}
+                    userId={user.id}
+                    jobTitle={m.job_title}
+                    company={m.company}
+                  />
+                </div>
               </div>
             ))}
           </div>

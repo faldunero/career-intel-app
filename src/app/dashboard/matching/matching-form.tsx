@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import ConvertToOpportunityButton from "./convert-to-opportunity-button";
 
 type Analysis = {
   empresa: string | null;
   cargo: string | null;
   matching_general: number;
-  matching_ats: number;
+  matching_ats: number | null;
   matching_tecnico: number;
   matching_liderazgo: number | null;
   matching_cultural: number;
@@ -18,8 +19,17 @@ type Analysis = {
   acciones_prioritarias: string[];
 };
 
-function ScoreRow({ label, value }: { label: string; value: number | null }) {
+function ScoreRow({
+  label,
+  value,
+  hideIfNull = false,
+}: {
+  label: string;
+  value: number | null;
+  hideIfNull?: boolean;
+}) {
   if (value === null) {
+    if (hideIfNull) return null;
     return (
       <div className="flex items-center justify-between text-sm">
         <span className="text-slate-500">{label}</span>
@@ -62,9 +72,11 @@ function ListBlock({ title, items }: { title: string; items?: string[] }) {
 }
 
 export default function MatchingForm({
+  userId,
   hasCv,
   cvFileName,
 }: {
+  userId: string;
   hasCv: boolean;
   cvFileName: string | null;
 }) {
@@ -73,6 +85,7 @@ export default function MatchingForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Analysis | null>(null);
+  const [matchId, setMatchId] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -95,6 +108,7 @@ export default function MatchingForm({
       }
 
       setResult(data.analysis);
+      setMatchId(data.id);
       router.refresh();
     } catch {
       setError("No se pudo conectar con el servidor");
@@ -105,6 +119,7 @@ export default function MatchingForm({
   function handleClear() {
     setJobDescription("");
     setResult(null);
+    setMatchId(null);
     setError(null);
   }
 
@@ -179,7 +194,7 @@ export default function MatchingForm({
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <ScoreRow label="ATS" value={result.matching_ats} />
+            <ScoreRow label="ATS" value={result.matching_ats} hideIfNull />
             <ScoreRow label="Técnico" value={result.matching_tecnico} />
             <ScoreRow label="Liderazgo" value={result.matching_liderazgo} />
             <ScoreRow
@@ -199,6 +214,15 @@ export default function MatchingForm({
             title="Acciones prioritarias"
             items={result.acciones_prioritarias}
           />
+
+          {matchId && (
+            <ConvertToOpportunityButton
+              matchId={matchId}
+              userId={userId}
+              jobTitle={result.cargo}
+              company={result.empresa}
+            />
+          )}
         </div>
       )}
     </div>
