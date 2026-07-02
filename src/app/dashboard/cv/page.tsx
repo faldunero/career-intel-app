@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import CvUploadForm from "./cv-upload-form";
 import CvAnalysis from "./cv-analysis";
 import RetryExtraction from "./retry-extraction";
+import CvActions from "./cv-actions";
 
 export default async function CvPage() {
   const supabase = await createClient();
@@ -19,7 +20,7 @@ export default async function CvPage() {
   const { data: cvs } = await supabase
     .from("cvs")
     .select(
-      "id, file_name, extraction_status, extraction_error, created_at, extracted_text, ats_score, ats_analysis"
+      "id, file_name, storage_path, extraction_status, extraction_error, created_at, extracted_text, ats_score, ats_analysis"
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
@@ -88,6 +89,11 @@ export default async function CvPage() {
                     {cv.extracted_text.slice(0, 220)}...
                   </p>
                 )}
+                <CvActions
+                  cvId={cv.id}
+                  storagePath={cv.storage_path}
+                  extractedText={cv.extracted_text}
+                />
                 <CvAnalysis
                   cvId={cv.id}
                   canAnalyze={cv.extraction_status === "done"}
