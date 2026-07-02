@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import LogoutButton from "./logout-button";
 
 type NavItem = { label: string; href: string };
-type NavGroup = { title: string; items: NavItem[] };
+type NavGroup = { id: string; title: string; items: NavItem[] };
 
 function ScoreBadge({ score }: { score: number | null }) {
   const color =
@@ -56,6 +57,33 @@ export default function Sidebar({
   careerScore: number | null;
 }) {
   const pathname = usePathname();
+  const supabase = createClient();
+
+  const viewedUserMatch = pathname.match(/^\/dashboard\/coach\/([0-9a-f-]{36})/);
+  const viewedUserId = viewedUserMatch?.[1] ?? null;
+  const [viewedUserName, setViewedUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!viewedUserId) {
+      setViewedUserName(null);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", viewedUserId)
+      .single()
+      .then(({ data }) => {
+        if (!cancelled) {
+          setViewedUserName(data?.full_name ?? data?.email ?? "Usuario");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewedUserId]);
 
   const groups: NavGroup[] = [];
 
@@ -63,17 +91,38 @@ export default function Sidebar({
   // búsqueda de empleo para admin/coach, esas son propias de "usuario".
   if (role === "administrador") {
     groups.push({
+      id: "admin",
       title: "Administración",
       items: [{ label: "Panel de administrador", href: "/dashboard/admin" }],
     });
   } else if (role === "coach") {
     groups.push({
+      id: "coach",
       title: "Coach",
       items: [{ label: "Mis usuarios asignados", href: "/dashboard/coach" }],
     });
+
+    if (viewedUserId) {
+      const base = `/dashboard/coach/${viewedUserId}`;
+      groups.push({
+        id: "viewed-user",
+        title: viewedUserName ?? "Usuario en vista",
+        items: [
+          { label: "Resumen", href: base },
+          { label: "CV", href: `${base}/cv` },
+          { label: "LinkedIn", href: `${base}/linkedin` },
+          { label: "Matching", href: `${base}/matching` },
+          { label: "CRM", href: `${base}/crm` },
+          { label: "Calendario", href: `${base}/calendario` },
+          { label: "Tareas", href: `${base}/tareas` },
+          { label: "Notas", href: `${base}/notas` },
+        ],
+      });
+    }
   } else {
     groups.push(
       {
+        id: "mi-carrera",
         title: "Mi carrera",
         items: [
           { label: "Resumen", href: "/dashboard" },
@@ -84,6 +133,7 @@ export default function Sidebar({
         ],
       },
       {
+        id: "documentos",
         title: "Documentos y matching",
         items: [
           { label: "Mi CV", href: "/dashboard/cv" },
@@ -91,6 +141,7 @@ export default function Sidebar({
         ],
       },
       {
+        id: "oportunidades",
         title: "Oportunidades",
         items: [
           { label: "CRM de oportunidades", href: "/dashboard/opportunities" },
@@ -100,17 +151,21 @@ export default function Sidebar({
   }
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
-    Object.fromEntries(groups.map((g) => [g.title, true]))
+    Object.fromEntries(groups.map((g) => [g.id, true]))
   );
 
-  function toggleGroup(title: string) {
-    setOpenGroups((prev) => ({ ...prev, [title]: !prev[title] }));
+  function toggleGroup(id: string) {
+    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
   function isActive(href: string) {
-    return href === "/dashboard"
-      ? pathname === "/dashboard"
-      : pathname.startsWith(href);
+    if (href === "/dashboard") {
+      return pathname === "/dashboard";
+    }
+    if (viewedUserId && href === `/dashboard/coach/${viewedUserId}`) {
+      return pathname === href;
+    }
+    return pathname.startsWith(href);
   }
 
   return (
@@ -134,38 +189,41 @@ export default function Sidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        {groups.map((group) => (
-          <div key={group.title} className="mb-3">
-            <button
-              onClick={() => toggleGroup(group.title)}
-              className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[11px] font-bold uppercase tracking-widest text-indigo-400 hover:text-indigo-300"
-            >
-              {group.title}
-              <span
-                className={`transition-transform ${openGroups[group.title] ? "rotate-90" : ""}`}
+        {groups.map((group) => {
+          const isOpen = openGroups[group.id] ?? true;
+          return (
+            <div key={group.id} className="mb-3">
+              <button
+                onClick={() => toggleGroup(group.id)}
+                className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[11px] font-bold uppercase tracking-widest text-indigo-400 hover:text-indigo-300"
               >
-                ›
-              </span>
-            </button>
-            {openGroups[group.title] && (
-              <div className="mt-1 flex flex-col gap-0.5">
-                {group.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-                      isActive(item.href)
-                        ? "bg-indigo-600 text-white shadow-sm"
-                        : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+                <span className="truncate">{group.title}</span>
+                <span
+                  className={`shrink-0 transition-transform ${isOpen ? "rotate-90" : ""}`}
+                >
+                  ›
+                </span>
+              </button>
+              {isOpen && (
+                <div className="mt-1 flex flex-col gap-0.5">
+                  {group.items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                        isActive(item.href)
+                          ? "bg-indigo-600 text-white shadow-sm"
+                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </nav>
     </aside>
   );
