@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import RoleSelector from "./role-selector";
 import CreateCoachForm from "./create-coach-form";
+import CreateUserForm from "./create-user-form";
 import CoachCard from "./coach-card";
 import CoachAssignSelector from "./coach-assign-selector";
 
@@ -80,9 +81,12 @@ export default async function AdminPage() {
       </div>
 
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-medium text-slate-900">
-          Usuarios ({users.length})
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-medium text-slate-900">
+            Usuarios ({users.length})
+          </h2>
+          <CreateUserForm coaches={coaches} />
+        </div>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
