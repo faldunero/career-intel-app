@@ -79,6 +79,9 @@ export default function Sidebar({
         <p className="mt-1 truncate text-sm font-semibold text-slate-900">
           {displayName}
         </p>
+        <div className="mt-3">
+          <LogoutButton />
+        </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
@@ -115,10 +118,6 @@ export default function Sidebar({
           </div>
         ))}
       </nav>
-
-      <div className="border-t border-slate-100 p-3">
-        <LogoutButton />
-      </div>
     </aside>
   );
 }
