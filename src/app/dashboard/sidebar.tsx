@@ -9,26 +9,31 @@ import LogoutButton from "./logout-button";
 type NavItem = { label: string; href: string };
 type NavGroup = { id: string; title: string; items: NavItem[] };
 
+const FONT_STYLE = {
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
+};
+
 function ScoreBadge({ score }: { score: number | null }) {
   const color =
     score === null
-      ? "bg-slate-700 text-slate-300"
+      ? "bg-[#333] text-[#999]"
       : score >= 75
-        ? "bg-emerald-500 text-white"
+        ? "bg-white text-black"
         : score >= 50
-          ? "bg-amber-500 text-white"
-          : "bg-red-500 text-white";
+          ? "bg-[#ccc] text-black"
+          : "bg-[#666] text-white";
 
   return (
     <Link
       href="/dashboard"
-      className="mt-4 flex items-center justify-between rounded-xl bg-slate-800 px-3 py-3 transition hover:bg-slate-700"
+      className="mt-4 flex items-center justify-between border border-[#333] bg-[#111] px-3 py-3 transition hover:bg-[#1a1a1a]"
     >
       <div>
-        <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-[#999]">
           Career Score
         </p>
-        <p className="mt-0.5 text-xs text-slate-400">
+        <p className="mt-0.5 text-xs text-[#777]">
           {score === null ? "Sin calcular" : "Ver detalle"}
         </p>
       </div>
@@ -172,15 +177,21 @@ export default function Sidebar({
   }
 
   return (
-    <aside className="flex h-screen w-72 shrink-0 flex-col bg-slate-900">
-      <div className="border-b border-slate-800 px-5 py-5">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-indigo-400">
+    <aside
+      className="flex h-screen w-72 shrink-0 flex-col bg-black"
+      style={FONT_STYLE}
+    >
+      <div className="border-b border-[#222] px-5 py-5">
+        <Link
+          href="/"
+          className="text-[11px] font-semibold uppercase tracking-widest text-white"
+        >
           Career Intelligence AI
-        </p>
-        <p className="mt-1 truncate text-base font-semibold text-white">
+        </Link>
+        <p className="mt-2 truncate text-base font-semibold text-white">
           {displayName}
         </p>
-        <p className="mt-0.5 text-xs font-medium text-slate-400">
+        <p className="mt-0.5 text-xs font-medium text-[#999]">
           {ROLE_LABELS[role] ?? role}
         </p>
 
@@ -198,7 +209,7 @@ export default function Sidebar({
             <div key={group.id} className="mb-3">
               <button
                 onClick={() => toggleGroup(group.id)}
-                className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[11px] font-bold uppercase tracking-widest text-indigo-400 hover:text-indigo-300"
+                className="flex w-full items-center justify-between px-2 py-1.5 text-left text-[11px] font-bold uppercase tracking-widest text-[#999] hover:text-white"
               >
                 <span className="truncate">{group.title}</span>
                 <span
@@ -213,10 +224,10 @@ export default function Sidebar({
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                      className={`px-3 py-2 text-sm font-medium transition ${
                         isActive(item.href)
-                          ? "bg-indigo-600 text-white shadow-sm"
-                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                          ? "bg-white text-black"
+                          : "text-[#ccc] hover:bg-[#1a1a1a] hover:text-white"
                       }`}
                     >
                       {item.label}
