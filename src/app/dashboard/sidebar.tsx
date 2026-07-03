@@ -108,7 +108,6 @@ export default function Sidebar({
         id: "viewed-user",
         title: viewedUserName ?? "Usuario en vista",
         items: [
-          { label: "Resumen", href: base },
           { label: "CV", href: `${base}/cv` },
           { label: "LinkedIn", href: `${base}/linkedin` },
           { label: "Matching", href: `${base}/matching` },
