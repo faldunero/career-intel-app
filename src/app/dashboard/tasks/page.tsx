@@ -1,17 +1,8 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUsuario } from "@/lib/require-usuario";
 import TaskStatusSelector from "./task-status-selector";
 
 export default async function TasksPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase, user } = await requireUsuario();
 
   const { data: tasks } = await supabase
     .from("coach_tasks")

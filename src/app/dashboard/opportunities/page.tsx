@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUsuario } from "@/lib/require-usuario";
 import AddOpportunityForm from "./add-opportunity-form";
 import OpportunityCard from "./opportunity-card";
 
@@ -13,15 +12,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 }
 
 export default async function OpportunitiesPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase, user } = await requireUsuario();
 
   const { data: opportunities } = await supabase
     .from("opportunities")

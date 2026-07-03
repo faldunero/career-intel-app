@@ -1,18 +1,9 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUsuario } from "@/lib/require-usuario";
 import LinkedinUploadForm from "./linkedin-upload-form";
 import LinkedinAnalysis from "./linkedin-analysis";
 
 export default async function LinkedinPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase, user } = await requireUsuario();
 
   const { data: items } = await supabase
     .from("linkedin_profiles")

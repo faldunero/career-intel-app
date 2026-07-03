@@ -1,18 +1,9 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUsuario } from "@/lib/require-usuario";
 import AddEventForm from "./add-event-form";
 import MonthCalendar from "./month-calendar";
 
 export default async function CalendarPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase, user } = await requireUsuario();
 
   const { data: events } = await supabase
     .from("calendar_events")

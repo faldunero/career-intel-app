@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUsuario } from "@/lib/require-usuario";
 import MatchingForm from "./matching-form";
 import DeleteMatchButton from "./delete-match-button";
 import LocalDateTime from "./local-datetime";
@@ -7,15 +6,7 @@ import ConvertToOpportunityButton from "./convert-to-opportunity-button";
 import CoverLetterButton from "./cover-letter-button";
 
 export default async function MatchingPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase, user } = await requireUsuario();
 
   const { data: latestCv } = await supabase
     .from("cvs")

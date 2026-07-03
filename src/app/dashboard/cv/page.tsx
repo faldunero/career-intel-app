@@ -1,20 +1,11 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireUsuario } from "@/lib/require-usuario";
 import CvUploadForm from "./cv-upload-form";
 import CvAnalysis from "./cv-analysis";
 import RetryExtraction from "./retry-extraction";
 import CvActions from "./cv-actions";
 
 export default async function CvPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase, user } = await requireUsuario();
 
   const { data: cvs } = await supabase
     .from("cvs")
