@@ -48,6 +48,17 @@ function LoginForm() {
     router.refresh();
   }
 
+  async function handleOAuth(provider: "google" | "azure") {
+    setError(null);
+    await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        ...(provider === "azure" ? { scopes: "email" } : {}),
+      },
+    });
+  }
+
   return (
     <main
       className="flex min-h-screen items-center justify-center bg-[#f5f5f5] px-4"
@@ -69,6 +80,53 @@ function LoginForm() {
         <p className="mb-6 text-sm text-[#555]">
           Ingresa tus credenciales para continuar.
         </p>
+
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => handleOAuth("google")}
+            className="flex items-center justify-center gap-2 border border-black px-4 py-2.5 text-sm font-medium text-black transition hover:bg-[#f5f5f5]"
+          >
+            <svg width="16" height="16" viewBox="0 0 48 48">
+              <path
+                fill="#FFC107"
+                d="M43.6 20.5H42V20.4H24v7.2h11.3c-1.6 4.5-5.9 7.6-11.3 7.6-6.9 0-12.5-5.6-12.5-12.5S17.1 10.2 24 10.2c3.2 0 6.1 1.2 8.3 3.2l5.1-5.1C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.4-.4-3.5z"
+              />
+              <path
+                fill="#FF3D00"
+                d="M6.3 14.7l5.9 4.3C13.8 15.6 18.5 12.7 24 12.7c3.2 0 6.1 1.2 8.3 3.2l5.1-5.1C34.6 7.1 29.6 5 24 5 16.3 5 9.7 9.3 6.3 14.7z"
+              />
+              <path
+                fill="#4CAF50"
+                d="M24 43c5.5 0 10.4-2.1 14.1-5.5l-6.5-5.5c-2.1 1.5-4.7 2.4-7.6 2.4-5.4 0-9.9-3.6-11.5-8.5l-6.1 4.7C9.6 38.4 16.2 43 24 43z"
+              />
+              <path
+                fill="#1976D2"
+                d="M43.6 20.5H42V20.4H24v7.2h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6.5 5.5c-.5.4 7.2-5.3 7.2-16.5 0-1.4-.1-2.4-.4-3.5z"
+              />
+            </svg>
+            Continuar con Google
+          </button>
+          <button
+            type="button"
+            onClick={() => handleOAuth("azure")}
+            className="flex items-center justify-center gap-2 border border-black px-4 py-2.5 text-sm font-medium text-black transition hover:bg-[#f5f5f5]"
+          >
+            <svg width="16" height="16" viewBox="0 0 23 23">
+              <rect x="1" y="1" width="10" height="10" fill="#f25022" />
+              <rect x="12" y="1" width="10" height="10" fill="#7fba00" />
+              <rect x="1" y="12" width="10" height="10" fill="#00a4ef" />
+              <rect x="12" y="12" width="10" height="10" fill="#ffb900" />
+            </svg>
+            Continuar con Microsoft
+          </button>
+        </div>
+
+        <div className="my-5 flex items-center gap-3">
+          <div className="h-px flex-1 bg-[#ddd]" />
+          <span className="text-xs text-[#999]">o con tu correo</span>
+          <div className="h-px flex-1 bg-[#ddd]" />
+        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
