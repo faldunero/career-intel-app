@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import LogoutButton from "./logout-button";
 
-type NavItem = { label: string; href: string };
+type NavItem = { label: string; href: string; badgeTitle?: string };
 type NavGroup = { id: string; title: string; items: NavItem[] };
 
 const FONT_STYLE = {
@@ -110,7 +110,13 @@ export default function Sidebar({
     groups.push({
       id: "coach",
       title: "Coach",
-      items: [{ label: "Mis usuarios asignados", href: "/dashboard/coach" }],
+      items: [
+        {
+          label: "Mis usuarios asignados",
+          href: "/dashboard/coach",
+          badgeTitle: "entrevistas por comentar",
+        },
+      ],
     });
 
     if (viewedUserId) {
@@ -140,8 +146,16 @@ export default function Sidebar({
           { label: "Perfil profesional", href: "/dashboard/profile" },
           { label: "LinkedIn", href: "/dashboard/linkedin" },
           { label: "Calendario", href: "/dashboard/calendar" },
-          { label: "Tareas", href: "/dashboard/tasks" },
-          { label: "Simulador de entrevistas", href: "/dashboard/interview" },
+          {
+            label: "Tareas",
+            href: "/dashboard/tasks",
+            badgeTitle: "tareas pendientes",
+          },
+          {
+            label: "Simulador de entrevistas",
+            href: "/dashboard/interview",
+            badgeTitle: "entrevistas nuevas por empezar",
+          },
         ],
       },
       {
@@ -238,7 +252,14 @@ export default function Sidebar({
                       >
                         <span>{item.label}</span>
                         {!!badgeCount && (
-                          <span className="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">
+                          <span
+                            title={
+                              item.badgeTitle
+                                ? `${badgeCount} ${item.badgeTitle}`
+                                : undefined
+                            }
+                            className="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white"
+                          >
                             {badgeCount > 99 ? "99+" : badgeCount}
                           </span>
                         )}
