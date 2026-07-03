@@ -209,7 +209,7 @@ export default function LandingPage() {
   }
 
   function handleAccess(role: string) {
-    router.push(`/login?role=${role}`);
+    window.location.href = `/login?role=${role}`;
   }
 
   return (
