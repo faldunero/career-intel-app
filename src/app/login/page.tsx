@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import PasswordInput from "@/components/password-input";
 
 const ROLE_LABELS: Record<string, string> = {
   administrador: "Acceso Administrador",
@@ -122,6 +123,7 @@ function LoginForm() {
             <input
               type="email"
               required
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-black px-3 py-2 text-sm text-black outline-none"
@@ -130,15 +132,22 @@ function LoginForm() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-black">
-              Contraseña
-            </label>
-            <input
-              type="password"
-              required
+            <div className="mb-1 flex items-center justify-between">
+              <label className="block text-sm font-medium text-black">
+                Contraseña
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-[#555] underline hover:text-black"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+            <PasswordInput
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-black px-3 py-2 text-sm text-black outline-none"
+              onChange={setPassword}
+              autoComplete="current-password"
+              required
               placeholder="••••••••"
             />
           </div>

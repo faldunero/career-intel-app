@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import PasswordInput from "@/components/password-input";
+import PasswordChecklist from "@/components/password-checklist";
+import { isPasswordValid } from "@/lib/password-rules";
 
 const fontStyle = {
   fontFamily:
@@ -21,6 +24,12 @@ export default function SignupPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!isPasswordValid(password)) {
+      setError("La contraseña no cumple los requisitos de abajo.");
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
@@ -153,6 +162,7 @@ export default function SignupPage() {
             <input
               type="text"
               required
+              autoComplete="name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="w-full border border-black px-3 py-2 text-sm text-black outline-none"
@@ -167,6 +177,7 @@ export default function SignupPage() {
             <input
               type="email"
               required
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-black px-3 py-2 text-sm text-black outline-none"
@@ -178,15 +189,16 @@ export default function SignupPage() {
             <label className="mb-1 block text-sm font-medium text-black">
               Contraseña
             </label>
-            <input
-              type="password"
-              required
-              minLength={6}
+            <PasswordInput
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-black px-3 py-2 text-sm text-black outline-none"
-              placeholder="Mínimo 6 caracteres"
+              onChange={setPassword}
+              autoComplete="new-password"
+              required
+              placeholder="Crea una contraseña segura"
             />
+            <div className="mt-2">
+              <PasswordChecklist password={password} />
+            </div>
           </div>
 
           {error && (
