@@ -56,10 +56,12 @@ export default function Sidebar({
   role,
   displayName,
   careerScore,
+  badges,
 }: {
   role: string;
   displayName: string;
   careerScore: number | null;
+  badges: Record<string, number>;
 }) {
   const pathname = usePathname();
   const supabase = createClient();
@@ -222,19 +224,27 @@ export default function Sidebar({
               </button>
               {isOpen && (
                 <div className="mt-1 flex flex-col gap-0.5">
-                  {group.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`px-3 py-2 text-sm font-medium transition ${
-                        isActive(item.href)
-                          ? "bg-white text-black"
-                          : "text-[#ccc] hover:bg-[#1a1a1a] hover:text-white"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
+                  {group.items.map((item) => {
+                    const badgeCount = badges[item.href];
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex items-center justify-between px-3 py-2 text-sm font-medium transition ${
+                          isActive(item.href)
+                            ? "bg-white text-black"
+                            : "text-[#ccc] hover:bg-[#1a1a1a] hover:text-white"
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        {!!badgeCount && (
+                          <span className="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">
+                            {badgeCount > 99 ? "99+" : badgeCount}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </div>
