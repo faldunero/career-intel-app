@@ -80,6 +80,9 @@ export default async function DashboardLayout({
         badges={badges}
       />
       <main className="flex-1 overflow-y-auto bg-slate-50 px-6 py-10">
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-xs text-red-800">
+          <strong>DEBUG user.factors:</strong> {JSON.stringify(user.factors)}
+        </div>
         {children}
       </main>
     </div>
