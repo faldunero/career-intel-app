@@ -93,7 +93,11 @@ export default function Sidebar({
     groups.push({
       id: "admin",
       title: "Administración",
-      items: [{ label: "Panel de administrador", href: "/dashboard/admin" }],
+      items: [
+        { label: "Administradores", href: "/dashboard/admin" },
+        { label: "Coaches", href: "/dashboard/admin/coaches" },
+        { label: "Usuarios", href: "/dashboard/admin/usuarios" },
+      ],
     });
   } else if (role === "coach") {
     groups.push({
@@ -158,8 +162,8 @@ export default function Sidebar({
   }
 
   function isActive(href: string) {
-    if (href === "/dashboard") {
-      return pathname === "/dashboard";
+    if (href === "/dashboard" || href === "/dashboard/admin") {
+      return pathname === href;
     }
     if (viewedUserId && href === `/dashboard/coach/${viewedUserId}`) {
       return pathname === href;
