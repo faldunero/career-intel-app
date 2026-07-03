@@ -123,6 +123,7 @@ export default function Sidebar({
           { label: "CRM", href: `${base}/crm` },
           { label: "Calendario", href: `${base}/calendario` },
           { label: "Tareas", href: `${base}/tareas` },
+          { label: "Entrevistas", href: `${base}/entrevistas` },
           { label: "Notas", href: `${base}/notas` },
         ],
       });
@@ -138,6 +139,7 @@ export default function Sidebar({
           { label: "LinkedIn", href: "/dashboard/linkedin" },
           { label: "Calendario", href: "/dashboard/calendar" },
           { label: "Tareas", href: "/dashboard/tasks" },
+          { label: "Simulador de entrevistas", href: "/dashboard/interview" },
         ],
       },
       {
