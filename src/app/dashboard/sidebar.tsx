@@ -56,7 +56,7 @@ export default function Sidebar({
   role,
   displayName,
   careerScore,
-  badges,
+  badges: serverBadges,
 }: {
   role: string;
   displayName: string;
@@ -69,13 +69,16 @@ export default function Sidebar({
   const viewedUserMatch = pathname.match(/^\/dashboard\/coach\/([0-9a-f-]{36})/);
   const viewedUserId = viewedUserMatch?.[1] ?? null;
   const [viewedUserName, setViewedUserName] = useState<string | null>(null);
+  const [viewedUserInterviewBadge, setViewedUserInterviewBadge] = useState(0);
 
   useEffect(() => {
     if (!viewedUserId) {
       setViewedUserName(null);
+      setViewedUserInterviewBadge(0);
       return;
     }
     let cancelled = false;
+
     supabase
       .from("profiles")
       .select("full_name, email")
@@ -86,11 +89,41 @@ export default function Sidebar({
           setViewedUserName(data?.full_name ?? data?.email ?? "Usuario");
         }
       });
+
+    // Entrevistas completadas de ESTE usuario que el coach aún no
+    // comentó (subconjunto del total que se ve en "Mis usuarios
+    // asignados").
+    supabase
+      .from("interview_sessions")
+      .select("id")
+      .eq("user_id", viewedUserId)
+      .eq("status", "completada")
+      .then(async ({ data: sessions }) => {
+        if (cancelled || !sessions || sessions.length === 0) {
+          if (!cancelled) setViewedUserInterviewBadge(0);
+          return;
+        }
+        const sessionIds = sessions.map((s) => s.id);
+        const { data: comments } = await supabase
+          .from("interview_comments")
+          .select("session_id")
+          .in("session_id", sessionIds);
+        const commented = new Set((comments ?? []).map((c) => c.session_id));
+        const pending = sessionIds.filter((id) => !commented.has(id));
+        if (!cancelled) setViewedUserInterviewBadge(pending.length);
+      });
+
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewedUserId]);
+
+  const badges: Record<string, number> = { ...serverBadges };
+  if (viewedUserId && viewedUserInterviewBadge > 0) {
+    badges[`/dashboard/coach/${viewedUserId}/entrevistas`] =
+      viewedUserInterviewBadge;
+  }
 
   const groups: NavGroup[] = [];
 
@@ -131,7 +164,11 @@ export default function Sidebar({
           { label: "CRM", href: `${base}/crm` },
           { label: "Calendario", href: `${base}/calendario` },
           { label: "Tareas", href: `${base}/tareas` },
-          { label: "Entrevistas", href: `${base}/entrevistas` },
+          {
+            label: "Entrevistas",
+            href: `${base}/entrevistas`,
+            badgeTitle: "entrevistas por comentar",
+          },
           { label: "Notas", href: `${base}/notas` },
         ],
       });
