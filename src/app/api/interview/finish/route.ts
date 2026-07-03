@@ -16,6 +16,7 @@ Responde ÚNICAMENTE con un objeto JSON válido (sin texto adicional, sin
 markdown, sin backticks) con exactamente esta forma:
 
 {
+  "puntaje": number (0-100, evaluación global de qué tan bien le fue en esta entrevista),
   "evaluacion_general": string (2-3 frases resumiendo el desempeño),
   "fortalezas": string[] (3-5 puntos, basados en respuestas concretas),
   "areas_de_mejora": string[] (3-5 puntos, específicos y accionables),

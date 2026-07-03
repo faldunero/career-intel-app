@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Message = { role: "user" | "assistant"; content: string };
+type Comment = { id: string; message_index: number | null; comment: string };
 type Feedback = {
+  puntaje?: number;
   evaluacion_general?: string;
   fortalezas?: string[];
   areas_de_mejora?: string[];
@@ -16,11 +18,13 @@ export default function InterviewChat({
   initialMessages,
   initialStatus,
   initialFeedback,
+  comments,
 }: {
   sessionId: string;
   initialMessages: Message[];
   initialStatus: string;
   initialFeedback: Feedback | null;
+  comments: Comment[];
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -32,6 +36,16 @@ export default function InterviewChat({
   const [error, setError] = useState<string | null>(null);
 
   const userAnswerCount = messages.filter((m) => m.role === "user").length;
+
+  const commentsByIndex = new Map<number, Comment[]>();
+  for (const c of comments) {
+    if (c.message_index !== null) {
+      const list = commentsByIndex.get(c.message_index) ?? [];
+      list.push(c);
+      commentsByIndex.set(c.message_index, list);
+    }
+  }
+  const generalComments = comments.filter((c) => c.message_index === null);
 
   async function handleSend() {
     if (!input.trim() || sending) return;
@@ -96,9 +110,16 @@ export default function InterviewChat({
     return (
       <div className="flex flex-col gap-4">
         <div className="rounded-2xl border border-green-200 bg-green-50 p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-green-800">
-            Feedback de tu entrevista
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-green-800">
+              Feedback de tu entrevista
+            </h2>
+            {feedback.puntaje !== undefined && (
+              <span className="rounded-full bg-green-700 px-3 py-1 text-sm font-bold text-white">
+                {feedback.puntaje}/100
+              </span>
+            )}
+          </div>
           {feedback.evaluacion_general && (
             <p className="mt-2 text-sm text-green-900">
               {feedback.evaluacion_general}
@@ -137,16 +158,37 @@ export default function InterviewChat({
         </div>
 
         <div className="flex flex-col gap-3">
+          {generalComments.length > 0 && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                Comentario de tu coach
+              </p>
+              {generalComments.map((c) => (
+                <p key={c.id} className="mt-1 text-sm text-amber-900">
+                  {c.comment}
+                </p>
+              ))}
+            </div>
+          )}
           {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`rounded-lg p-3 text-sm ${
-                m.role === "assistant"
-                  ? "bg-slate-100 text-slate-800"
-                  : "ml-8 bg-slate-900 text-white"
-              }`}
-            >
-              {m.content}
+            <div key={i}>
+              <div
+                className={`rounded-lg p-3 text-sm ${
+                  m.role === "assistant"
+                    ? "bg-slate-100 text-slate-800"
+                    : "ml-8 bg-slate-900 text-white"
+                }`}
+              >
+                {m.content}
+              </div>
+              {(commentsByIndex.get(i) ?? []).map((c) => (
+                <p
+                  key={c.id}
+                  className="ml-8 mt-1 rounded bg-amber-50 px-2 py-1 text-xs text-amber-800"
+                >
+                  💬 {c.comment}
+                </p>
+              ))}
             </div>
           ))}
         </div>
@@ -164,15 +206,24 @@ export default function InterviewChat({
           </p>
         )}
         {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`max-w-[85%] rounded-lg p-3 text-sm ${
-              m.role === "assistant"
-                ? "self-start bg-slate-100 text-slate-800"
-                : "self-end bg-slate-900 text-white"
-            }`}
-          >
-            {m.content}
+          <div key={i}>
+            <div
+              className={`max-w-[85%] rounded-lg p-3 text-sm ${
+                m.role === "assistant"
+                  ? "self-start bg-slate-100 text-slate-800"
+                  : "self-end ml-auto bg-slate-900 text-white"
+              }`}
+            >
+              {m.content}
+            </div>
+            {(commentsByIndex.get(i) ?? []).map((c) => (
+              <p
+                key={c.id}
+                className="ml-auto mt-1 max-w-[85%] rounded bg-amber-50 px-2 py-1 text-xs text-amber-800"
+              >
+                💬 {c.comment}
+              </p>
+            ))}
           </div>
         ))}
         {sending && (

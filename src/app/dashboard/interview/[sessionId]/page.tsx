@@ -30,6 +30,12 @@ export default async function InterviewSessionPage({
     notFound();
   }
 
+  const { data: comments } = await supabase
+    .from("interview_comments")
+    .select("id, message_index, comment, created_at")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: true });
+
   return (
     <div className="mx-auto max-w-2xl">
       <Link
@@ -53,6 +59,7 @@ export default async function InterviewSessionPage({
           initialMessages={session.messages ?? []}
           initialStatus={session.status}
           initialFeedback={session.feedback}
+          comments={comments ?? []}
         />
       </div>
     </div>

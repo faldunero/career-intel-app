@@ -27,7 +27,7 @@ export default async function InterviewListPage() {
 
   const { data: sessions } = await supabase
     .from("interview_sessions")
-    .select("id, interview_type, target_role, status, created_at")
+    .select("id, interview_type, target_role, status, feedback, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -66,10 +66,19 @@ export default async function InterviewListPage() {
                 })}
               </p>
             </div>
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[s.status] ?? ""}`}
-            >
-              {STATUS_LABELS[s.status] ?? s.status}
+            <span className="flex items-center gap-2">
+              {s.status === "completada" &&
+                (s.feedback as { puntaje?: number })?.puntaje !==
+                  undefined && (
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                    {(s.feedback as { puntaje?: number }).puntaje}/100
+                  </span>
+                )}
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[s.status] ?? ""}`}
+              >
+                {STATUS_LABELS[s.status] ?? s.status}
+              </span>
             </span>
           </Link>
         ))}
