@@ -213,6 +213,13 @@ export default function Sidebar({
     );
   }
 
+  // Seguridad (2FA) aplica a cualquier cuenta, sin importar el rol.
+  groups.push({
+    id: "cuenta",
+    title: "Cuenta",
+    items: [{ label: "Seguridad", href: "/dashboard/security" }],
+  });
+
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
     Object.fromEntries(groups.map((g) => [g.id, true]))
   );

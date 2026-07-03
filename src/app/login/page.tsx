@@ -48,13 +48,12 @@ function LoginForm() {
     router.refresh();
   }
 
-  async function handleOAuth(provider: "google" | "azure") {
+  async function handleOAuth() {
     setError(null);
     await supabase.auth.signInWithOAuth({
-      provider,
+      provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
-        ...(provider === "azure" ? { scopes: "email" } : {}),
       },
     });
   }
@@ -84,7 +83,7 @@ function LoginForm() {
         <div className="flex flex-col gap-2">
           <button
             type="button"
-            onClick={() => handleOAuth("google")}
+            onClick={handleOAuth}
             className="flex items-center justify-center gap-2 border border-black px-4 py-2.5 text-sm font-medium text-black transition hover:bg-[#f5f5f5]"
           >
             <svg width="16" height="16" viewBox="0 0 48 48">
@@ -106,19 +105,6 @@ function LoginForm() {
               />
             </svg>
             Continuar con Google
-          </button>
-          <button
-            type="button"
-            onClick={() => handleOAuth("azure")}
-            className="flex items-center justify-center gap-2 border border-black px-4 py-2.5 text-sm font-medium text-black transition hover:bg-[#f5f5f5]"
-          >
-            <svg width="16" height="16" viewBox="0 0 23 23">
-              <rect x="1" y="1" width="10" height="10" fill="#f25022" />
-              <rect x="12" y="1" width="10" height="10" fill="#7fba00" />
-              <rect x="1" y="12" width="10" height="10" fill="#00a4ef" />
-              <rect x="12" y="12" width="10" height="10" fill="#ffb900" />
-            </svg>
-            Continuar con Microsoft
           </button>
         </div>
 
