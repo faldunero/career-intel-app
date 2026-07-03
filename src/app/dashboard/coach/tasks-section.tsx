@@ -115,40 +115,62 @@ export default function TasksSection({
           </p>
         )}
         {initialTasks.map((t) => (
-          <div
-            key={t.id}
-            className="flex items-start justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm"
-          >
-            <div>
-              <p className="font-medium text-slate-900">{t.title}</p>
-              {t.description && (
-                <p className="text-xs text-slate-500">{t.description}</p>
-              )}
-              {t.due_date && (
-                <p className="mt-0.5 text-xs text-slate-400">
-                  Vence:{" "}
-                  {new Date(t.due_date + "T00:00:00").toLocaleDateString(
-                    "es-CL"
-                  )}
-                </p>
-              )}
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[t.status] ?? ""}`}
-              >
-                {STATUS_LABELS[t.status] ?? t.status}
-              </span>
-              <button
-                onClick={() => handleDelete(t.id)}
-                className="text-xs font-medium text-red-500 underline hover:text-red-700"
-              >
-                Eliminar
-              </button>
-            </div>
-          </div>
+          <TaskRow key={t.id} task={t} onDelete={handleDelete} />
         ))}
       </div>
+    </div>
+  );
+}
+
+function TaskRow({
+  task,
+  onDelete,
+}: {
+  task: Task;
+  onDelete: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border border-slate-100">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm"
+      >
+        <div>
+          <p className="font-medium text-slate-900">{task.title}</p>
+          <p className="mt-0.5 text-xs text-slate-400">
+            {task.due_date
+              ? `Vence: ${new Date(task.due_date + "T00:00:00").toLocaleDateString("es-CL")}`
+              : "Sin fecha límite"}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[task.status] ?? ""}`}
+          >
+            {STATUS_LABELS[task.status] ?? task.status}
+          </span>
+          <span
+            className={`text-slate-400 transition-transform ${open ? "rotate-90" : ""}`}
+          >
+            ›
+          </span>
+        </div>
+      </button>
+      {open && (
+        <div className="border-t border-slate-100 px-3 py-2">
+          {task.description && (
+            <p className="text-xs text-slate-600">{task.description}</p>
+          )}
+          <button
+            onClick={() => onDelete(task.id)}
+            className="mt-2 text-xs font-medium text-red-500 underline hover:text-red-700"
+          >
+            Eliminar
+          </button>
+        </div>
+      )}
     </div>
   );
 }

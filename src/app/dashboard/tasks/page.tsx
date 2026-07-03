@@ -1,5 +1,5 @@
 import { requireUsuario } from "@/lib/require-usuario";
-import TaskStatusSelector from "./task-status-selector";
+import UserTaskCard from "./user-task-card";
 
 export default async function TasksPage() {
   const { supabase, user } = await requireUsuario();
@@ -32,32 +32,7 @@ export default async function TasksPage() {
         )}
 
         {pendientes.map((t) => (
-          <div
-            key={t.id}
-            className="rounded-xl border border-slate-200 bg-white p-4"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-slate-900">
-                  {t.title}
-                </p>
-                {t.description && (
-                  <p className="mt-1 text-sm text-slate-600">
-                    {t.description}
-                  </p>
-                )}
-                {t.due_date && (
-                  <p className="mt-1 text-xs text-slate-400">
-                    Vence:{" "}
-                    {new Date(t.due_date + "T00:00:00").toLocaleDateString(
-                      "es-CL"
-                    )}
-                  </p>
-                )}
-              </div>
-              <TaskStatusSelector taskId={t.id} currentStatus={t.status} />
-            </div>
-          </div>
+          <UserTaskCard key={t.id} task={t} />
         ))}
 
         {completadas.length > 0 && (
@@ -66,17 +41,7 @@ export default async function TasksPage() {
               Completadas
             </h2>
             {completadas.map((t) => (
-              <div
-                key={t.id}
-                className="rounded-xl border border-slate-100 bg-slate-50 p-4 opacity-70"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-sm font-medium text-slate-700 line-through">
-                    {t.title}
-                  </p>
-                  <TaskStatusSelector taskId={t.id} currentStatus={t.status} />
-                </div>
-              </div>
+              <UserTaskCard key={t.id} task={t} completed />
             ))}
           </>
         )}

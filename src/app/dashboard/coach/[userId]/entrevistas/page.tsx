@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getCoachViewedUser } from "@/lib/coach-guard";
 import EnableInterviewForm from "../../enable-interview-form";
-import TranscriptToggle from "./transcript-toggle";
+import InterviewSessionCard from "./interview-session-card";
 
 const TYPE_LABELS: Record<string, string> = {
   recruiter: "Recruiter",
@@ -12,24 +12,10 @@ const TYPE_LABELS: Record<string, string> = {
   panel_tecnico: "Panel Técnico",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  disponible: "Disponible (aún no empieza)",
-  en_progreso: "En progreso",
-  completada: "Completada",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  disponible: "bg-slate-100 text-slate-700",
-  en_progreso: "bg-amber-100 text-amber-700",
-  completada: "bg-green-100 text-green-700",
-};
-
 function ScoreDot({ score }: { score: number }) {
   const color =
     score >= 75 ? "bg-green-500" : score >= 50 ? "bg-amber-500" : "bg-red-500";
-  return (
-    <span className={`inline-block h-2.5 w-2.5 rounded-full ${color}`} />
-  );
+  return <span className={`inline-block h-2.5 w-2.5 rounded-full ${color}`} />;
 }
 
 export default async function CoachUserInterviewsPage({
@@ -63,7 +49,6 @@ export default async function CoachUserInterviewsPage({
     commentsBySession.set(c.session_id, list);
   }
 
-  // Progreso: puntaje de cada entrevista completada, en orden cronológico
   const completedWithScore = (sessions ?? [])
     .filter((s) => s.status === "completada" && s.feedback)
     .map((s) => ({
@@ -104,10 +89,7 @@ export default async function CoachUserInterviewsPage({
           </h2>
           <div className="mt-3 flex flex-col gap-2">
             {completedWithScore.map((s, i) => (
-              <div
-                key={s.id}
-                className="flex items-center justify-between text-sm"
-              >
+              <div key={s.id} className="flex items-center justify-between text-sm">
                 <span className="text-slate-600">
                   {i + 1}. {s.type} —{" "}
                   {new Date(s.date).toLocaleDateString("es-CL", {
@@ -144,83 +126,14 @@ export default async function CoachUserInterviewsPage({
             No has habilitado ninguna simulación todavía.
           </p>
         )}
-        {(sessions ?? []).map((s) => {
-          const feedback = s.feedback as
-            | {
-                puntaje?: number;
-                evaluacion_general?: string;
-                fortalezas?: string[];
-                areas_de_mejora?: string[];
-              }
-            | null;
-          return (
-            <div
-              key={s.id}
-              className="rounded-xl border border-slate-200 bg-white p-4"
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-900">
-                  {TYPE_LABELS[s.interview_type] ?? s.interview_type}
-                  {s.target_role ? ` — ${s.target_role}` : ""}
-                </p>
-                <div className="flex items-center gap-2">
-                  {feedback?.puntaje !== undefined && (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                      {feedback.puntaje}/100
-                    </span>
-                  )}
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[s.status] ?? ""}`}
-                  >
-                    {STATUS_LABELS[s.status] ?? s.status}
-                  </span>
-                </div>
-              </div>
-
-              {feedback && (
-                <div className="mt-3 border-t border-slate-100 pt-3">
-                  {feedback.evaluacion_general && (
-                    <p className="text-sm text-slate-600">
-                      {feedback.evaluacion_general}
-                    </p>
-                  )}
-                  {feedback.fortalezas && feedback.fortalezas.length > 0 && (
-                    <div className="mt-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Fortalezas
-                      </h4>
-                      <ul className="mt-1 list-disc pl-5 text-sm text-slate-700">
-                        {feedback.fortalezas.map((f, i) => (
-                          <li key={i}>{f}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {feedback.areas_de_mejora &&
-                    feedback.areas_de_mejora.length > 0 && (
-                      <div className="mt-2">
-                        <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                          Áreas de mejora
-                        </h4>
-                        <ul className="mt-1 list-disc pl-5 text-sm text-slate-700">
-                          {feedback.areas_de_mejora.map((a, i) => (
-                            <li key={i}>{a}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                </div>
-              )}
-
-              <TranscriptToggle
-                sessionId={s.id}
-                coachId={coachId}
-                messages={s.messages ?? []}
-                comments={commentsBySession.get(s.id) ?? []}
-              />
-            </div>
-          );
-        })}
+        {(sessions ?? []).map((s) => (
+          <InterviewSessionCard
+            key={s.id}
+            session={s}
+            coachId={coachId}
+            comments={commentsBySession.get(s.id) ?? []}
+          />
+        ))}
       </div>
     </div>
   );
