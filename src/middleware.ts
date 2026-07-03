@@ -41,12 +41,23 @@ export async function middleware(request: NextRequest) {
   // Si el usuario tiene 2FA activado pero todavía no completó el
   // segundo factor en esta sesión, lo mandamos a verificarlo antes de
   // dejarlo entrar a cualquier página protegida.
+  //
+  // Nota: NO usamos "nextLevel" de getAuthenticatorAssuranceLevel()
+  // porque tiene un bug conocido de Supabase donde a veces no detecta
+  // un factor verificado recién después del login. En cambio,
+  // revisamos user.factors directamente (que sí viene poblado
+  // correctamente por getUser()) y comparamos contra el nivel actual
+  // real de la sesión.
   if (user && (isProtectedRoute || isMfaChallengeRoute)) {
+    const hasVerifiedTotp =
+      user.factors?.some(
+        (f) => f.status === "verified" && f.factor_type === "totp"
+      ) ?? false;
+
     const { data: aal } =
       await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
-    const needsMfa =
-      aal?.nextLevel === "aal2" && aal.currentLevel !== aal.nextLevel;
+    const needsMfa = hasVerifiedTotp && aal?.currentLevel !== "aal2";
 
     if (needsMfa && !isMfaChallengeRoute) {
       const url = request.nextUrl.clone();

@@ -26,10 +26,6 @@ export default async function DashboardLayout({
   const displayName = profile?.full_name || user.email || "Usuario";
   const role = profile?.role ?? "usuario";
 
-  // DEBUG TEMPORAL — para diagnosticar el 2FA, lo quitamos después.
-  const { data: aalDebug, error: aalError } =
-    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-
   // Badges tipo "hay algo nuevo" — solo lo que representa información
   // pendiente real, no un contador de todo lo que existe.
   const badges: Record<string, number> = {};
@@ -84,10 +80,6 @@ export default async function DashboardLayout({
         badges={badges}
       />
       <main className="flex-1 overflow-y-auto bg-slate-50 px-6 py-10">
-        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-xs text-red-800">
-          <strong>DEBUG TEMPORAL AAL:</strong>{" "}
-          {JSON.stringify({ aalDebug, aalError: aalError?.message })}
-        </div>
         {children}
       </main>
     </div>
