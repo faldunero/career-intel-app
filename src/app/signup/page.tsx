@@ -119,6 +119,12 @@ export default function SignupPage() {
       <div className="w-full max-w-sm border border-black bg-white p-8">
         <Link
           href="/"
+          className="mb-4 inline-block text-xs text-[#555] underline hover:text-black"
+        >
+          ← Volver al inicio
+        </Link>
+        <Link
+          href="/"
           className="mb-6 block text-xs font-semibold uppercase tracking-widest text-black"
         >
           EXECUTIVE TRANSITION
