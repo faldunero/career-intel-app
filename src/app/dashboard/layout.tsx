@@ -43,8 +43,14 @@ export default async function DashboardLayout({
       .eq("user_id", user.id)
       .eq("status", "disponible");
 
+    const { count: unseenCvComments } = await supabase
+      .from("cv_comments")
+      .select("id", { count: "exact", head: true })
+      .eq("seen_by_user", false);
+
     if (pendingTasks) badges["/dashboard/tasks"] = pendingTasks;
     if (newInterviews) badges["/dashboard/interview"] = newInterviews;
+    if (unseenCvComments) badges["/dashboard/cv"] = unseenCvComments;
   }
 
   if (role === "coach") {

@@ -15,6 +15,42 @@ export default async function CvPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  type CvComment = {
+    id: string;
+    cv_id: string;
+    section: string | null;
+    item_index: number | null;
+    comment: string;
+    seen_by_user: boolean;
+  };
+
+  const cvIds = (cvs ?? []).map((cv) => cv.id);
+  const { data: comments } = cvIds.length
+    ? await supabase
+        .from("cv_comments")
+        .select("id, cv_id, section, item_index, comment, seen_by_user")
+        .in("cv_id", cvIds)
+    : { data: [] as CvComment[] };
+
+  // Al abrir esta página, se marcan como vistos los comentarios pendientes
+  // (esto es lo que hace desaparecer el badge del sidebar).
+  const unseenIds = (comments ?? [])
+    .filter((c) => !c.seen_by_user)
+    .map((c) => c.id);
+  if (unseenIds.length > 0) {
+    await supabase
+      .from("cv_comments")
+      .update({ seen_by_user: true })
+      .in("id", unseenIds);
+  }
+
+  const commentsByCv = new Map<string, CvComment[]>();
+  for (const c of (comments ?? []) as CvComment[]) {
+    const list = commentsByCv.get(c.cv_id) ?? [];
+    list.push(c);
+    commentsByCv.set(c.cv_id, list);
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-semibold text-slate-900">Tu CV</h1>
@@ -79,6 +115,7 @@ export default async function CvPage() {
                 canAnalyze={cv.extraction_status === "done"}
                 initialScore={cv.ats_score}
                 initialAnalysis={cv.ats_analysis}
+                comments={commentsByCv.get(cv.id) ?? []}
               />
             </div>
           ))}
