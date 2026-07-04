@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { getCoachViewedUser } from "@/lib/coach-guard";
+import OpportunityAccordionItem from "./opportunity-accordion-item";
 
-const STATUS_LABELS: Record<string, string> = {
-  por_postular: "Por postular",
-  postulado: "Postulado",
-  entrevista: "En entrevista",
-  oferta: "Oferta recibida",
-  rechazado: "Rechazado",
-  abandonado: "Abandonado",
+type Comment = {
+  id: string;
+  opportunity_id: string;
+  comment: string;
+  created_at: string;
 };
 
 export default async function CoachUserCrmPage({
@@ -16,11 +15,13 @@ export default async function CoachUserCrmPage({
   params: Promise<{ userId: string }>;
 }) {
   const { userId } = await params;
-  const { supabase, profile } = await getCoachViewedUser(userId);
+  const { supabase, coachId, profile } = await getCoachViewedUser(userId);
 
   const { data: opportunities } = await supabase
     .from("opportunities")
-    .select("id, company, job_title, status, priority, next_action, next_action_date, created_at")
+    .select(
+      "id, company, job_title, industry, source, url, status, priority, next_action, next_action_date, notes, created_at"
+    )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -28,6 +29,22 @@ export default async function CoachUserCrmPage({
   const postulaciones = opps.filter((o) => o.status !== "por_postular").length;
   const entrevistas = opps.filter((o) => o.status === "entrevista").length;
   const ofertas = opps.filter((o) => o.status === "oferta").length;
+
+  const oppIds = opps.map((o) => o.id);
+  const { data: allComments } = oppIds.length
+    ? await supabase
+        .from("opportunity_comments")
+        .select("id, opportunity_id, comment, created_at")
+        .in("opportunity_id", oppIds)
+        .order("created_at", { ascending: true })
+    : { data: [] as Comment[] };
+
+  const commentsByOpp = new Map<string, Comment[]>();
+  for (const c of (allComments ?? []) as Comment[]) {
+    const list = commentsByOpp.get(c.opportunity_id) ?? [];
+    list.push(c);
+    commentsByOpp.set(c.opportunity_id, list);
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -63,41 +80,23 @@ export default async function CoachUserCrmPage({
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-medium text-slate-900">
+      <div className="mt-6 flex flex-col gap-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           Pipeline ({opps.length})
         </h2>
-        <div className="mt-3 flex flex-col gap-2">
-          {opps.map((o) => (
-            <div
-              key={o.id}
-              className="rounded-lg border border-slate-100 px-3 py-2 text-sm"
-            >
-              <div className="flex items-center justify-between">
-                <span>
-                  {o.job_title ?? "Cargo sin definir"}
-                  {o.company ? ` — ${o.company}` : ""}
-                </span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                  {STATUS_LABELS[o.status] ?? o.status}
-                </span>
-              </div>
-              {o.next_action && (
-                <p className="mt-1 text-xs text-slate-500">
-                  Próxima acción: {o.next_action}
-                  {o.next_action_date
-                    ? ` (${new Date(o.next_action_date + "T00:00:00").toLocaleDateString("es-CL")})`
-                    : ""}
-                </p>
-              )}
-            </div>
-          ))}
-          {opps.length === 0 && (
-            <p className="text-xs text-slate-400">
-              Este usuario no ha registrado oportunidades todavía.
-            </p>
-          )}
-        </div>
+        {opps.length === 0 && (
+          <p className="text-sm text-slate-400">
+            Este usuario no ha registrado oportunidades todavía.
+          </p>
+        )}
+        {opps.map((o) => (
+          <OpportunityAccordionItem
+            key={o.id}
+            opp={o}
+            coachId={coachId}
+            comments={commentsByOpp.get(o.id) ?? []}
+          />
+        ))}
       </div>
     </div>
   );

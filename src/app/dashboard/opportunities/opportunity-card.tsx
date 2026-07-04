@@ -32,7 +32,18 @@ type Opportunity = {
   notes: string | null;
 };
 
-export default function OpportunityCard({ opp }: { opp: Opportunity }) {
+type Comment = {
+  id: string;
+  comment: string;
+};
+
+export default function OpportunityCard({
+  opp,
+  comments = [],
+}: {
+  opp: Opportunity;
+  comments?: Comment[];
+}) {
   const router = useRouter();
   const supabase = createClient();
   const [status, setStatus] = useState(opp.status);
@@ -275,6 +286,19 @@ export default function OpportunityCard({ opp }: { opp: Opportunity }) {
 
       {opp.notes && (
         <p className="mt-2 text-xs text-slate-500">{opp.notes}</p>
+      )}
+
+      {comments.length > 0 && (
+        <div className="mt-3 flex flex-col gap-1.5 border-t border-slate-100 pt-3">
+          {comments.map((c) => (
+            <p
+              key={c.id}
+              className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-slate-700"
+            >
+              💬 <span className="font-medium">Tu coach:</span> {c.comment}
+            </p>
+          ))}
+        </div>
       )}
     </div>
   );

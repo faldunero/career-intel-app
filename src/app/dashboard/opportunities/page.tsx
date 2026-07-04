@@ -32,6 +32,38 @@ export default async function OpportunitiesPage() {
   const tasaRespuesta =
     postulaciones > 0 ? Math.round((respondidas / postulaciones) * 100) : 0;
 
+  type OppComment = {
+    id: string;
+    opportunity_id: string;
+    comment: string;
+    seen_by_user: boolean;
+  };
+
+  const oppIds = all.map((o) => o.id);
+  const { data: comments } = oppIds.length
+    ? await supabase
+        .from("opportunity_comments")
+        .select("id, opportunity_id, comment, seen_by_user")
+        .in("opportunity_id", oppIds)
+    : { data: [] as OppComment[] };
+
+  const unseenIds = (comments ?? [])
+    .filter((c) => !c.seen_by_user)
+    .map((c) => c.id);
+  if (unseenIds.length > 0) {
+    await supabase
+      .from("opportunity_comments")
+      .update({ seen_by_user: true })
+      .in("id", unseenIds);
+  }
+
+  const commentsByOpp = new Map<string, OppComment[]>();
+  for (const c of (comments ?? []) as OppComment[]) {
+    const list = commentsByOpp.get(c.opportunity_id) ?? [];
+    list.push(c);
+    commentsByOpp.set(c.opportunity_id, list);
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-semibold text-slate-900">
@@ -61,7 +93,11 @@ export default async function OpportunitiesPage() {
           </p>
         )}
         {all.map((opp) => (
-          <OpportunityCard key={opp.id} opp={opp} />
+          <OpportunityCard
+            key={opp.id}
+            opp={opp}
+            comments={commentsByOpp.get(opp.id) ?? []}
+          />
         ))}
       </div>
     </div>
