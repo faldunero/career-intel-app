@@ -53,10 +53,16 @@ export default async function DashboardLayout({
       .select("id", { count: "exact", head: true })
       .eq("seen_by_user", false);
 
+    const { count: unseenMatchComments } = await supabase
+      .from("job_match_comments")
+      .select("id", { count: "exact", head: true })
+      .eq("seen_by_user", false);
+
     if (pendingTasks) badges["/dashboard/tasks"] = pendingTasks;
     if (newInterviews) badges["/dashboard/interview"] = newInterviews;
     if (unseenCvComments) badges["/dashboard/cv"] = unseenCvComments;
     if (unseenLinkedinComments) badges["/dashboard/linkedin"] = unseenLinkedinComments;
+    if (unseenMatchComments) badges["/dashboard/matching"] = unseenMatchComments;
   }
 
   if (role === "coach") {

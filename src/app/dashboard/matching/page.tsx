@@ -25,6 +25,62 @@ export default async function MatchingPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  type MatchComment = {
+    id: string;
+    job_match_id: string;
+    section: string | null;
+    comment: string;
+    seen_by_user: boolean;
+  };
+
+  const matchIds = (matches ?? []).map((m) => m.id);
+  const { data: comments } = matchIds.length
+    ? await supabase
+        .from("job_match_comments")
+        .select("id, job_match_id, section, comment, seen_by_user")
+        .in("job_match_id", matchIds)
+    : { data: [] as MatchComment[] };
+
+  const unseenIds = (comments ?? [])
+    .filter((c) => !c.seen_by_user)
+    .map((c) => c.id);
+  if (unseenIds.length > 0) {
+    await supabase
+      .from("job_match_comments")
+      .update({ seen_by_user: true })
+      .in("id", unseenIds);
+  }
+
+  const commentsByMatch = new Map<string, MatchComment[]>();
+  for (const c of (comments ?? []) as MatchComment[]) {
+    const list = commentsByMatch.get(c.job_match_id) ?? [];
+    list.push(c);
+    commentsByMatch.set(c.job_match_id, list);
+  }
+
+  function commentsFor(matchId: string, section: string | null) {
+    return (commentsByMatch.get(matchId) ?? []).filter(
+      (c) => c.section === section
+    );
+  }
+
+  function CommentBubbles({ matchId, section }: { matchId: string; section: string | null }) {
+    const list = commentsFor(matchId, section);
+    if (list.length === 0) return null;
+    return (
+      <div className="mt-2 flex flex-col gap-1.5">
+        {list.map((c) => (
+          <p
+            key={c.id}
+            className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-slate-700"
+          >
+            💬 <span className="font-medium">Tu coach:</span> {c.comment}
+          </p>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-semibold text-slate-900">
@@ -85,6 +141,20 @@ export default async function MatchingPage() {
                 </div>
               )}
 
+              {m.analysis?.fortalezas?.length > 0 && (
+                <div className="mt-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Fortalezas
+                  </h4>
+                  <ul className="mt-1 list-disc pl-5 text-xs text-slate-600">
+                    {m.analysis.fortalezas.map((b: string, i: number) => (
+                      <li key={i}>{b}</li>
+                    ))}
+                  </ul>
+                  <CommentBubbles matchId={m.id} section="fortalezas" />
+                </div>
+              )}
+
               {m.analysis?.brechas?.length > 0 && (
                 <div className="mt-3">
                   <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -95,8 +165,39 @@ export default async function MatchingPage() {
                       <li key={i}>{b}</li>
                     ))}
                   </ul>
+                  <CommentBubbles matchId={m.id} section="brechas" />
                 </div>
               )}
+
+              {m.analysis?.riesgos?.length > 0 && (
+                <div className="mt-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Riesgos
+                  </h4>
+                  <ul className="mt-1 list-disc pl-5 text-xs text-slate-600">
+                    {m.analysis.riesgos.map((b: string, i: number) => (
+                      <li key={i}>{b}</li>
+                    ))}
+                  </ul>
+                  <CommentBubbles matchId={m.id} section="riesgos" />
+                </div>
+              )}
+
+              {m.analysis?.acciones_prioritarias?.length > 0 && (
+                <div className="mt-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Acciones prioritarias
+                  </h4>
+                  <ul className="mt-1 list-disc pl-5 text-xs text-slate-600">
+                    {m.analysis.acciones_prioritarias.map((b: string, i: number) => (
+                      <li key={i}>{b}</li>
+                    ))}
+                  </ul>
+                  <CommentBubbles matchId={m.id} section="acciones_prioritarias" />
+                </div>
+              )}
+
+              <CommentBubbles matchId={m.id} section={null} />
 
               <div className="mt-3 flex flex-col gap-3">
                 <ConvertToOpportunityButton
