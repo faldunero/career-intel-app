@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import AssignedUsersTable from "./assigned-users-table";
 
 const SESSION_TYPE_LABELS: Record<string, string> = {
   recruiter: "Recruiter",
@@ -357,53 +358,23 @@ export default async function CoachPage() {
         </h2>
       </div>
 
-      <div className="mt-3 flex flex-col gap-3">
-        {assigned.length === 0 && (
-          <p className="text-sm text-slate-500">
-            Todavía no tienes usuarios asignados. Pídele a un
-            administrador que te asigne alguno.
-          </p>
-        )}
-        {assigned.map((a) => {
-          const p = Array.isArray(a.profiles) ? a.profiles[0] : a.profiles;
-          if (!p) return null;
-          const pendingForUser = pending.filter((x) => x.userId === a.user_id).length;
-          return (
-            <Link
-              key={a.user_id}
-              href={`/dashboard/coach/${a.user_id}`}
-              className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300"
-            >
-              <div>
-                <p className="text-sm font-medium text-slate-900">
-                  {p.full_name ?? p.email ?? "Usuario sin nombre"}
-                </p>
-                <p className="text-xs text-slate-500">{p.email}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                {pendingForUser > 0 && (
-                  <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
-                    {pendingForUser} pendiente{pendingForUser !== 1 ? "s" : ""}
-                  </span>
-                )}
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    p.profile_completed
-                      ? "bg-green-100 text-green-700"
-                      : "bg-amber-100 text-amber-700"
-                  }`}
-                >
-                  {p.profile_completed ? "Perfil completo" : "Pendiente"}
-                </span>
-                {p.career_score !== null && (
-                  <span className="text-xs text-slate-500">
-                    Score: {p.career_score}
-                  </span>
-                )}
-              </div>
-            </Link>
-          );
-        })}
+      <div className="mt-3">
+        <AssignedUsersTable
+          users={assigned
+            .map((a) => {
+              const p = Array.isArray(a.profiles) ? a.profiles[0] : a.profiles;
+              if (!p) return null;
+              return {
+                id: a.user_id,
+                full_name: p.full_name,
+                email: p.email,
+                profile_completed: p.profile_completed,
+                career_score: p.career_score,
+                pendingCount: pending.filter((x) => x.userId === a.user_id).length,
+              };
+            })
+            .filter((u): u is NonNullable<typeof u> => u !== null)}
+        />
       </div>
     </div>
   );
