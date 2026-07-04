@@ -23,11 +23,11 @@ export default async function LinkedinPage() {
         Score y recibe recomendaciones priorizadas.
       </p>
 
-      <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
-        <h2 className="text-sm font-semibold text-amber-900">
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+        <h2 className="text-sm font-semibold text-slate-900">
           Cómo exportar tu perfil (2 pasos)
         </h2>
-        <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-amber-900">
+        <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-slate-700">
           <li>
             Entra a tu perfil de LinkedIn (ícono &quot;Me&quot; → View
             profile).
@@ -40,12 +40,12 @@ export default async function LinkedinPage() {
             disponible en la app móvil, hazlo desde el navegador.
           </li>
         </ol>
-        <p className="mt-3 text-xs text-amber-700">
+        <p className="mt-3 text-xs text-slate-500">
           Sube ese PDF exportado abajo — no sirve una captura de
           pantalla ni un PDF de otra fuente, porque necesitamos el
           texto seleccionable que genera LinkedIn.
         </p>
-        <p className="mt-2 text-xs text-amber-700">
+        <p className="mt-2 text-xs text-slate-500">
           ¿No ves la opción &quot;Save to PDF&quot;? En algunos casos
           LinkedIn la limita según el idioma del perfil — si te pasa
           eso, cambia temporalmente tu idioma a inglés en Settings →

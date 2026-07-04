@@ -21,13 +21,13 @@ export default async function ProfilePage() {
         de vacantes y recomendaciones se calculan a partir de aquí.
       </p>
 
-      <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-5">
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-blue-900">
+            <h2 className="text-sm font-semibold text-slate-900">
               Perfil de LinkedIn
             </h2>
-            <p className="mt-1 text-xs text-blue-800">
+            <p className="mt-1 text-xs text-slate-600">
               Sube tu perfil exportado en PDF para compararlo con tu CV
               y calcular tu LinkedIn Score.
             </p>
