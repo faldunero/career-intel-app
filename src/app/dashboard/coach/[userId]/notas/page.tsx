@@ -12,7 +12,7 @@ export default async function CoachUserNotesPage({
 
   const { data: notes } = await supabase
     .from("coach_notes")
-    .select("id, note, created_at")
+    .select("id, note, created_at, visible_to_user")
     .eq("user_id", userId)
     .eq("coach_id", coachId)
     .order("created_at", { ascending: false });
@@ -32,7 +32,9 @@ export default async function CoachUserNotesPage({
         Observaciones de seguimiento
       </h1>
       <p className="mt-1 text-sm text-slate-500">
-        Solo tú (este coach) puedes ver tus propias notas.
+        Por defecto son privadas (solo tú las ves). Puedes marcar
+        cualquier nota como compartida para que el usuario también la
+        vea — útil para dar feedback directo sin salir de aquí.
       </p>
 
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-type NavItem = { label: string; href: string; badgeTitle?: string };
+type NavItem = { label: string; href: string; badgeTitle?: string; dotOnly?: boolean };
 type NavGroup = { id: string; title: string; items: NavItem[] };
 
 const FONT_STYLE = {
@@ -143,7 +143,8 @@ export default function Sidebar({
         {
           label: "Mis usuarios asignados",
           href: "/dashboard/coach",
-          badgeTitle: "entrevistas por comentar",
+          badgeTitle: "entrevistas por comentar entre tus usuarios",
+          dotOnly: true,
         },
       ],
     });
@@ -188,6 +189,11 @@ export default function Sidebar({
             label: "Simulador de entrevistas",
             href: "/dashboard/interview",
             badgeTitle: "entrevistas nuevas por empezar",
+          },
+          {
+            label: "Notas de tu coach",
+            href: "/dashboard/notes",
+            badgeTitle: "notas nuevas de tu coach",
           },
         ],
       },
@@ -274,7 +280,17 @@ export default function Sidebar({
                         }`}
                       >
                         <span>{item.label}</span>
-                        {!!badgeCount && (
+                        {!!badgeCount && item.dotOnly && (
+                          <span
+                            title={
+                              item.badgeTitle
+                                ? `Hay ${item.badgeTitle}`
+                                : "Hay pendientes"
+                            }
+                            className="ml-2 h-2.5 w-2.5 shrink-0 rounded-full bg-red-500"
+                          />
+                        )}
+                        {!!badgeCount && !item.dotOnly && (
                           <span
                             title={
                               item.badgeTitle
