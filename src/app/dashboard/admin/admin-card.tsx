@@ -99,7 +99,7 @@ export default function AdminCard({
             <p className="font-medium text-slate-900">
               {admin.full_name ?? "Sin nombre"}
               {admin.is_super_admin && (
-                <span className="ml-2 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-purple-700">
+                <span className="ml-2 rounded-full bg-black px-2 py-0.5 text-[10px] font-semibold uppercase text-white">
                   Principal
                 </span>
               )}

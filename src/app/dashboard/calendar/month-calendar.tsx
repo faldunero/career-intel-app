@@ -122,7 +122,7 @@ export default function MonthCalendar({
               {hasEvents && (
                 <span
                   className={`absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${
-                    isSelected ? "bg-white" : "bg-indigo-500"
+                    isSelected ? "bg-white" : "bg-black"
                   }`}
                 />
               )}

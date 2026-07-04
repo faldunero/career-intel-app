@@ -38,9 +38,9 @@ export default async function AdminAdministradoresSubPage() {
         Administradores
       </h1>
 
-      <div className="mt-6 rounded-2xl border border-purple-200 bg-purple-50 p-6">
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-purple-900">
+          <h2 className="text-lg font-medium text-slate-900">
             Administradores ({admins?.length ?? 0})
           </h2>
           <CreateAdminForm />
@@ -51,7 +51,7 @@ export default async function AdminAdministradoresSubPage() {
           ))}
         </div>
         {!isSuperAdmin && (
-          <p className="mt-3 text-xs text-purple-700">
+          <p className="mt-3 text-xs text-slate-500">
             Solo el administrador principal puede eliminar cuentas de
             administrador. Tú puedes crear administradores, coaches y
             usuarios, y eliminar coaches y usuarios.
