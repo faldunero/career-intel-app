@@ -16,9 +16,13 @@ function pad(n: number) {
 export default function MonthCalendar({
   events,
   editable,
+  coachId,
+  commentsByEvent,
 }: {
   events: CalendarEvent[];
   editable: boolean;
+  coachId?: string;
+  commentsByEvent?: Record<string, { id: string; comment: string }[]>;
 }) {
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
@@ -135,7 +139,12 @@ export default function MonthCalendar({
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
           {selectedLabel}
         </p>
-        <EventList events={selectedEvents} editable={editable} />
+        <EventList
+          events={selectedEvents}
+          editable={editable}
+          coachId={coachId}
+          commentsByEvent={commentsByEvent}
+        />
       </div>
     </div>
   );

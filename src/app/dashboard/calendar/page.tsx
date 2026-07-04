@@ -12,6 +12,37 @@ export default async function CalendarPage() {
     .order("event_date", { ascending: true })
     .order("event_time", { ascending: true });
 
+  type EventComment = {
+    id: string;
+    event_id: string;
+    comment: string;
+    seen_by_user: boolean;
+  };
+
+  const eventIds = (events ?? []).map((e) => e.id);
+  const { data: comments } = eventIds.length
+    ? await supabase
+        .from("calendar_event_comments")
+        .select("id, event_id, comment, seen_by_user")
+        .in("event_id", eventIds)
+    : { data: [] as EventComment[] };
+
+  const unseenIds = (comments ?? [])
+    .filter((c) => !c.seen_by_user)
+    .map((c) => c.id);
+  if (unseenIds.length > 0) {
+    await supabase
+      .from("calendar_event_comments")
+      .update({ seen_by_user: true })
+      .in("id", unseenIds);
+  }
+
+  const commentsByEvent: Record<string, { id: string; comment: string }[]> = {};
+  for (const c of (comments ?? []) as EventComment[]) {
+    if (!commentsByEvent[c.event_id]) commentsByEvent[c.event_id] = [];
+    commentsByEvent[c.event_id].push({ id: c.id, comment: c.comment });
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-semibold text-slate-900">Calendario</h1>
@@ -26,7 +57,11 @@ export default async function CalendarPage() {
       </div>
 
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <MonthCalendar events={events ?? []} editable />
+        <MonthCalendar
+          events={events ?? []}
+          editable
+          commentsByEvent={commentsByEvent}
+        />
       </div>
     </div>
   );

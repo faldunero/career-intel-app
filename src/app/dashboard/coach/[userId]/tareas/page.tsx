@@ -2,6 +2,13 @@ import Link from "next/link";
 import { getCoachViewedUser } from "@/lib/coach-guard";
 import TasksSection from "../../tasks-section";
 
+type Comment = {
+  id: string;
+  task_id: string;
+  comment: string;
+  created_at: string;
+};
+
 export default async function CoachUserTasksPage({
   params,
 }: {
@@ -16,6 +23,21 @@ export default async function CoachUserTasksPage({
     .eq("user_id", userId)
     .eq("coach_id", coachId)
     .order("created_at", { ascending: false });
+
+  const taskIds = (tasks ?? []).map((t) => t.id);
+  const { data: allComments } = taskIds.length
+    ? await supabase
+        .from("coach_task_comments")
+        .select("id, task_id, comment, created_at")
+        .in("task_id", taskIds)
+        .order("created_at", { ascending: true })
+    : { data: [] as Comment[] };
+
+  const commentsByTask: Record<string, Comment[]> = {};
+  for (const c of (allComments ?? []) as Comment[]) {
+    if (!commentsByTask[c.task_id]) commentsByTask[c.task_id] = [];
+    commentsByTask[c.task_id].push(c);
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -37,6 +59,7 @@ export default async function CoachUserTasksPage({
           coachId={coachId}
           userId={userId}
           initialTasks={tasks ?? []}
+          commentsByTask={commentsByTask}
         />
       </div>
     </div>

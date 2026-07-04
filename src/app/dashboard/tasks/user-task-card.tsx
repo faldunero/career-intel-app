@@ -11,11 +11,18 @@ type Task = {
   status: string;
 };
 
+type Comment = {
+  id: string;
+  comment: string;
+};
+
 export default function UserTaskCard({
   task,
+  comments = [],
   completed = false,
 }: {
   task: Task;
+  comments?: Comment[];
   completed?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -44,6 +51,11 @@ export default function UserTaskCard({
           className="flex shrink-0 items-center gap-2"
           onClick={(e) => e.stopPropagation()}
         >
+          {comments.length > 0 && (
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+              {comments.length} comentario{comments.length !== 1 ? "s" : ""}
+            </span>
+          )}
           <TaskStatusSelector taskId={task.id} currentStatus={task.status} />
           <span
             className={`text-slate-400 transition-transform ${open ? "rotate-90" : ""}`}
@@ -52,9 +64,23 @@ export default function UserTaskCard({
           </span>
         </div>
       </button>
-      {open && task.description && (
+      {open && (
         <div className="border-t border-slate-100 px-4 py-3">
-          <p className="text-sm text-slate-600">{task.description}</p>
+          {task.description && (
+            <p className="text-sm text-slate-600">{task.description}</p>
+          )}
+          {comments.length > 0 && (
+            <div className="mt-2 flex flex-col gap-1.5">
+              {comments.map((c) => (
+                <p
+                  key={c.id}
+                  className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-slate-700"
+                >
+                  💬 <span className="font-medium">Tu coach:</span> {c.comment}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

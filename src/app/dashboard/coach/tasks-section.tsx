@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import TaskCommentThread from "./task-comment-thread";
 
 type Task = {
   id: string;
@@ -10,6 +11,12 @@ type Task = {
   description: string | null;
   due_date: string | null;
   status: string;
+};
+
+type Comment = {
+  id: string;
+  comment: string;
+  created_at: string;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -31,10 +38,12 @@ export default function TasksSection({
   coachId,
   userId,
   initialTasks,
+  commentsByTask = {},
 }: {
   coachId: string;
   userId: string;
   initialTasks: Task[];
+  commentsByTask?: Record<string, Comment[]>;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -115,7 +124,13 @@ export default function TasksSection({
           </p>
         )}
         {initialTasks.map((t) => (
-          <TaskRow key={t.id} task={t} onDelete={handleDelete} />
+          <TaskRow
+            key={t.id}
+            task={t}
+            coachId={coachId}
+            comments={commentsByTask[t.id] ?? []}
+            onDelete={handleDelete}
+          />
         ))}
       </div>
     </div>
@@ -124,9 +139,13 @@ export default function TasksSection({
 
 function TaskRow({
   task,
+  coachId,
+  comments,
   onDelete,
 }: {
   task: Task;
+  coachId: string;
+  comments: Comment[];
   onDelete: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -146,6 +165,11 @@ function TaskRow({
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {comments.length > 0 && (
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+              {comments.length} comentario{comments.length !== 1 ? "s" : ""}
+            </span>
+          )}
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[task.status] ?? ""}`}
           >
@@ -163,6 +187,14 @@ function TaskRow({
           {task.description && (
             <p className="text-xs text-slate-600">{task.description}</p>
           )}
+
+          <TaskCommentThread
+            taskId={task.id}
+            coachId={coachId}
+            comments={comments}
+            placeholder="Feedback sobre esta tarea (ej: si ya la completó, cómo le fue)..."
+          />
+
           <button
             onClick={() => onDelete(task.id)}
             className="mt-2 text-xs font-medium text-red-500 underline hover:text-red-700"

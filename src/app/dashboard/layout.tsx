@@ -69,6 +69,11 @@ export default async function DashboardLayout({
       .eq("seen_by_user", false)
       .eq("visible_to_user", true);
 
+    const { count: unseenCalendarComments } = await supabase
+      .from("calendar_event_comments")
+      .select("id", { count: "exact", head: true })
+      .eq("seen_by_user", false);
+
     if (pendingTasks) badges["/dashboard/tasks"] = pendingTasks;
     if (newInterviews) badges["/dashboard/interview"] = newInterviews;
     if (unseenCvComments) badges["/dashboard/cv"] = unseenCvComments;
@@ -76,6 +81,7 @@ export default async function DashboardLayout({
     if (unseenMatchComments) badges["/dashboard/matching"] = unseenMatchComments;
     if (unseenOppComments) badges["/dashboard/opportunities"] = unseenOppComments;
     if (unseenNotes) badges["/dashboard/notes"] = unseenNotes;
+    if (unseenCalendarComments) badges["/dashboard/calendar"] = unseenCalendarComments;
   }
 
   if (role === "coach") {

@@ -14,6 +14,38 @@ export default async function TasksPage() {
   const pendientes = all.filter((t) => t.status !== "completada");
   const completadas = all.filter((t) => t.status === "completada");
 
+  type TaskComment = {
+    id: string;
+    task_id: string;
+    comment: string;
+    seen_by_user: boolean;
+  };
+
+  const taskIds = all.map((t) => t.id);
+  const { data: comments } = taskIds.length
+    ? await supabase
+        .from("coach_task_comments")
+        .select("id, task_id, comment, seen_by_user")
+        .in("task_id", taskIds)
+    : { data: [] as TaskComment[] };
+
+  const unseenIds = (comments ?? [])
+    .filter((c) => !c.seen_by_user)
+    .map((c) => c.id);
+  if (unseenIds.length > 0) {
+    await supabase
+      .from("coach_task_comments")
+      .update({ seen_by_user: true })
+      .in("id", unseenIds);
+  }
+
+  const commentsByTask = new Map<string, TaskComment[]>();
+  for (const c of (comments ?? []) as TaskComment[]) {
+    const list = commentsByTask.get(c.task_id) ?? [];
+    list.push(c);
+    commentsByTask.set(c.task_id, list);
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-semibold text-slate-900">
@@ -32,7 +64,11 @@ export default async function TasksPage() {
         )}
 
         {pendientes.map((t) => (
-          <UserTaskCard key={t.id} task={t} />
+          <UserTaskCard
+            key={t.id}
+            task={t}
+            comments={commentsByTask.get(t.id) ?? []}
+          />
         ))}
 
         {completadas.length > 0 && (
@@ -41,7 +77,12 @@ export default async function TasksPage() {
               Completadas
             </h2>
             {completadas.map((t) => (
-              <UserTaskCard key={t.id} task={t} completed />
+              <UserTaskCard
+                key={t.id}
+                task={t}
+                comments={commentsByTask.get(t.id) ?? []}
+                completed
+              />
             ))}
           </>
         )}
