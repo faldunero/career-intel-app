@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import PasswordInput from "@/components/password-input";
 import PasswordChecklist from "@/components/password-checklist";
+import TurnstileWidget from "@/components/turnstile-widget";
 import { isPasswordValid } from "@/lib/password-rules";
 
 const fontStyle = {
@@ -16,17 +17,34 @@ export default function SignupPage() {
   const supabase = createClient();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const captchaEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
+    if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+      setError("Los correos no coinciden.");
+      return;
+    }
     if (!isPasswordValid(password)) {
       setError("La contraseña no cumple los requisitos de abajo.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+    if (captchaEnabled && !captchaToken) {
+      setError("Completa la verificación de seguridad.");
       return;
     }
 
@@ -39,6 +57,7 @@ export default function SignupPage() {
         data: {
           full_name: fullName,
         },
+        captchaToken: captchaToken ?? undefined,
       },
     });
 
@@ -173,6 +192,22 @@ export default function SignupPage() {
 
           <div>
             <label className="mb-1 block text-sm font-medium text-black">
+              Confirmar correo electrónico
+            </label>
+            <input
+              type="email"
+              required
+              autoComplete="email"
+              value={confirmEmail}
+              onChange={(e) => setConfirmEmail(e.target.value)}
+              onPaste={(e) => e.preventDefault()}
+              className="w-full border border-black px-3 py-2 text-sm text-black outline-none"
+              placeholder="Repite tu correo"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-black">
               Contraseña
             </label>
             <PasswordInput
@@ -186,6 +221,26 @@ export default function SignupPage() {
               <PasswordChecklist password={password} />
             </div>
           </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-black">
+              Confirmar contraseña
+            </label>
+            <PasswordInput
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              autoComplete="new-password"
+              required
+              placeholder="Repite tu contraseña"
+            />
+          </div>
+
+          {captchaEnabled && (
+            <TurnstileWidget
+              onVerify={setCaptchaToken}
+              onExpire={() => setCaptchaToken(null)}
+            />
+          )}
 
           {error && (
             <p className="border border-black bg-[#f5f5f5] px-3 py-2 text-sm text-black">
