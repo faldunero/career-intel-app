@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import LogoutButton from "./logout-button";
 
 type NavItem = { label: string; href: string; badgeTitle?: string };
 type NavGroup = { id: string; title: string; items: NavItem[] };
@@ -252,10 +251,6 @@ export default function Sidebar({
         </Link>
 
         {role === "usuario" && <ScoreBadge score={careerScore} />}
-
-        <div className="mt-3">
-          <LogoutButton />
-        </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
