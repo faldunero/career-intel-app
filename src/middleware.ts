@@ -30,7 +30,12 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isProtectedRoute = request.nextUrl.pathname.startsWith("/dashboard");
+  const isForcePasswordRoute =
+    request.nextUrl.pathname === "/force-password-change";
+  const isMfaSetupRoute = request.nextUrl.pathname === "/mfa-setup";
   const isMfaChallengeRoute = request.nextUrl.pathname === "/mfa-challenge";
+  const isOnboardingRoute =
+    isForcePasswordRoute || isMfaSetupRoute || isMfaChallengeRoute;
 
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone();
@@ -38,35 +43,64 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Si el usuario tiene 2FA activado pero todavía no completó el
-  // segundo factor en esta sesión, lo mandamos a verificarlo antes de
-  // dejarlo entrar a cualquier página protegida.
-  //
-  // Nota: NO usamos "nextLevel" de getAuthenticatorAssuranceLevel() ni
-  // "user.factors" de getUser() — confirmamos con debug que ninguno
-  // de los dos viene poblado de forma confiable en este contexto.
-  // listFactors() es la función dedicada de Supabase para esto y sí
-  // funciona.
-  if (user && (isProtectedRoute || isMfaChallengeRoute)) {
+  if (user && (isProtectedRoute || isOnboardingRoute)) {
+    function redirectTo(pathname: string) {
+      const url = request.nextUrl.clone();
+      url.pathname = pathname;
+      return NextResponse.redirect(url);
+    }
+
+    // Paso 1: contraseña temporal (cuentas creadas por un admin) —
+    // tiene que cambiarla antes de cualquier otra cosa.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("must_change_password")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.must_change_password && !isForcePasswordRoute) {
+      return redirectTo("/force-password-change");
+    }
+    if (!profile?.must_change_password && isForcePasswordRoute) {
+      return redirectTo("/mfa-setup");
+    }
+
+    // Paso 2: 2FA obligatorio para todas las cuentas — si todavía no
+    // tiene ningún factor verificado, lo mandamos a configurarlo.
+    //
+    // Nota: NO usamos "nextLevel" de getAuthenticatorAssuranceLevel() ni
+    // "user.factors" de getUser() — confirmamos con debug que ninguno
+    // de los dos viene poblado de forma confiable en este contexto.
+    // listFactors() es la función dedicada de Supabase para esto y sí
+    // funciona.
     const { data: factorsData } = await supabase.auth.mfa.listFactors();
     const hasVerifiedTotp =
       factorsData?.totp?.some((f) => f.status === "verified") ?? false;
 
+    if (
+      !profile?.must_change_password &&
+      !hasVerifiedTotp &&
+      !isMfaSetupRoute
+    ) {
+      return redirectTo("/mfa-setup");
+    }
+    if (hasVerifiedTotp && isMfaSetupRoute) {
+      return redirectTo("/dashboard");
+    }
+
+    // Paso 3: ya tiene 2FA activo — si esta sesión concreta todavía no
+    // pasó el desafío (por ejemplo, sesión nueva recién logueada), se
+    // le pide el código antes de dejarlo entrar.
     const { data: aal } =
       await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
-    const needsMfa = hasVerifiedTotp && aal?.currentLevel !== "aal2";
+    const needsMfaChallenge = hasVerifiedTotp && aal?.currentLevel !== "aal2";
 
-    if (needsMfa && !isMfaChallengeRoute) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/mfa-challenge";
-      return NextResponse.redirect(url);
+    if (needsMfaChallenge && !isMfaChallengeRoute) {
+      return redirectTo("/mfa-challenge");
     }
-
-    if (!needsMfa && isMfaChallengeRoute) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
+    if (!needsMfaChallenge && isMfaChallengeRoute) {
+      return redirectTo("/dashboard");
     }
   }
 

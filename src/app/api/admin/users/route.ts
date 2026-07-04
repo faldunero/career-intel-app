@@ -42,7 +42,11 @@ export async function POST(request: Request) {
   }
 
   // handle_new_user ya creó la fila en profiles con role 'usuario' por
-  // defecto — no hace falta tocar el rol para este caso.
+  // defecto. Marcamos que debe cambiar la contraseña temporal.
+  await admin
+    .from("profiles")
+    .update({ must_change_password: true })
+    .eq("id", created.user.id);
 
   if (coachId) {
     const { error: assignError } = await admin.from("coach_assignments").insert({

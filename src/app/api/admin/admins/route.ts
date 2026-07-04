@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
   const { error: roleError } = await admin
     .from("profiles")
-    .update({ role: "administrador" })
+    .update({ role: "administrador", must_change_password: true })
     .eq("id", created.user.id);
 
   if (roleError) {

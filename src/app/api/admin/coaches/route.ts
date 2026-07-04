@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   // 'usuario' por defecto. La subimos a 'coach'.
   const { error: roleError } = await admin
     .from("profiles")
-    .update({ role: "coach" })
+    .update({ role: "coach", must_change_password: true })
     .eq("id", created.user.id);
 
   if (roleError) {
