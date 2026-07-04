@@ -71,6 +71,30 @@ export default async function DashboardLayout({
     }
   }
 
+  if (role === "administrador") {
+    const { data: usuarios } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("role", "usuario");
+
+    if (usuarios && usuarios.length > 0) {
+      const { data: assignments } = await supabase
+        .from("coach_assignments")
+        .select("user_id");
+
+      const assignedSet = new Set(
+        (assignments ?? []).map((a) => a.user_id)
+      );
+      const unassignedCount = usuarios.filter(
+        (u) => !assignedSet.has(u.id)
+      ).length;
+
+      if (unassignedCount > 0) {
+        badges["/dashboard/admin/usuarios"] = unassignedCount;
+      }
+    }
+  }
+
   return (
     <div className="flex min-h-screen">
       <Sidebar

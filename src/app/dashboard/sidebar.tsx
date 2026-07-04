@@ -136,7 +136,11 @@ export default function Sidebar({
       items: [
         { label: "Administradores", href: "/dashboard/admin" },
         { label: "Coaches", href: "/dashboard/admin/coaches" },
-        { label: "Usuarios", href: "/dashboard/admin/usuarios" },
+        {
+          label: "Usuarios",
+          href: "/dashboard/admin/usuarios",
+          badgeTitle: "usuarios sin coach asignado",
+        },
       ],
     });
   } else if (role === "coach") {
