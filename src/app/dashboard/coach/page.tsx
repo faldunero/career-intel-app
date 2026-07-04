@@ -32,6 +32,25 @@ export default async function CoachPage() {
 
   const assigned = assignments ?? [];
 
+  const { data: myCompletedSessions } = await supabase
+    .from("interview_sessions")
+    .select("id")
+    .eq("coach_id", user.id)
+    .eq("status", "completada");
+
+  let uncommentedCount = 0;
+  if (myCompletedSessions && myCompletedSessions.length > 0) {
+    const sessionIds = myCompletedSessions.map((s) => s.id);
+    const { data: commentedSessions } = await supabase
+      .from("interview_comments")
+      .select("session_id")
+      .in("session_id", sessionIds);
+    const commentedSet = new Set(
+      (commentedSessions ?? []).map((c) => c.session_id)
+    );
+    uncommentedCount = sessionIds.filter((id) => !commentedSet.has(id)).length;
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-semibold text-slate-900">
@@ -41,6 +60,14 @@ export default async function CoachPage() {
         {assigned.length} usuario{assigned.length !== 1 ? "s" : ""}{" "}
         asignado{assigned.length !== 1 ? "s" : ""}.
       </p>
+
+      {uncommentedCount > 0 && (
+        <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500" />
+          {uncommentedCount} entrevista{uncommentedCount !== 1 ? "s" : ""}{" "}
+          completada{uncommentedCount !== 1 ? "s" : ""} sin comentar
+        </p>
+      )}
 
       <div className="mt-6 flex flex-col gap-3">
         {assigned.length === 0 && (

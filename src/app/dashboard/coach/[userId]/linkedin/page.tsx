@@ -1,5 +1,32 @@
 import Link from "next/link";
 import { getCoachViewedUser } from "@/lib/coach-guard";
+import LinkedinCommentThread from "./linkedin-comment-thread";
+
+type LinkedinAnalysis = {
+  resumen?: string;
+  diferencias_con_cv?: string[];
+  informacion_faltante_en_linkedin?: string[];
+  palabras_clave_faltantes?: string[];
+  logros_omitidos?: string[];
+  recomendaciones_priorizadas?: string[];
+};
+
+type Comment = {
+  id: string;
+  linkedin_profile_id: string;
+  section: string | null;
+  item_index: number | null;
+  comment: string;
+  created_at: string;
+};
+
+const SECTION_LABELS: Record<string, string> = {
+  diferencias_con_cv: "Diferencias con el CV",
+  informacion_faltante_en_linkedin: "Falta en LinkedIn",
+  palabras_clave_faltantes: "Palabras clave faltantes",
+  logros_omitidos: "Logros omitidos",
+  recomendaciones_priorizadas: "Recomendaciones priorizadas",
+};
 
 export default async function CoachUserLinkedinPage({
   params,
@@ -7,7 +34,7 @@ export default async function CoachUserLinkedinPage({
   params: Promise<{ userId: string }>;
 }) {
   const { userId } = await params;
-  const { supabase, profile } = await getCoachViewedUser(userId);
+  const { supabase, coachId, profile } = await getCoachViewedUser(userId);
 
   const { data: linkedinProfiles } = await supabase
     .from("linkedin_profiles")
@@ -15,15 +42,42 @@ export default async function CoachUserLinkedinPage({
     .eq("user_id", userId)
     .order("analyzed_at", { ascending: false });
 
+  const profileIds = (linkedinProfiles ?? []).map((p) => p.id);
+  const { data: allComments } = profileIds.length
+    ? await supabase
+        .from("linkedin_comments")
+        .select("id, linkedin_profile_id, section, item_index, comment, created_at")
+        .in("linkedin_profile_id", profileIds)
+        .order("created_at", { ascending: true })
+    : { data: [] as Comment[] };
+
+  const commentsByProfile = new Map<string, Comment[]>();
+  for (const c of (allComments ?? []) as Comment[]) {
+    const list = commentsByProfile.get(c.linkedin_profile_id) ?? [];
+    list.push(c);
+    commentsByProfile.set(c.linkedin_profile_id, list);
+  }
+
+  function commentsFor(
+    profileId: string,
+    section: string | null,
+    itemIndex: number | null
+  ) {
+    return (commentsByProfile.get(profileId) ?? []).filter(
+      (c) => c.section === section && c.item_index === itemIndex
+    );
+  }
+
   const latest = linkedinProfiles?.[0];
-  const analysis = latest?.linkedin_analysis as
-    | {
-        resumen?: string;
-        recomendaciones_priorizadas?: string[];
-        palabras_clave_faltantes?: string[];
-      }
-    | null
-    | undefined;
+  const analysis = latest?.linkedin_analysis as LinkedinAnalysis | null | undefined;
+
+  const sections: Array<keyof LinkedinAnalysis> = [
+    "diferencias_con_cv",
+    "informacion_faltante_en_linkedin",
+    "palabras_clave_faltantes",
+    "logros_omitidos",
+    "recomendaciones_priorizadas",
+  ];
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -55,32 +109,48 @@ export default async function CoachUserLinkedinPage({
             {analysis?.resumen && (
               <p className="mt-2 text-sm text-slate-600">{analysis.resumen}</p>
             )}
-            {analysis?.palabras_clave_faltantes &&
-              analysis.palabras_clave_faltantes.length > 0 && (
-                <div className="mt-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Palabras clave faltantes
-                  </h4>
-                  <ul className="mt-1 list-disc pl-5 text-sm text-slate-700">
-                    {analysis.palabras_clave_faltantes.map((p, i) => (
-                      <li key={i}>{p}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            {analysis?.recomendaciones_priorizadas &&
-              analysis.recomendaciones_priorizadas.length > 0 && (
-                <div className="mt-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Recomendaciones priorizadas
-                  </h4>
-                  <ul className="mt-1 list-disc pl-5 text-sm text-slate-700">
-                    {analysis.recomendaciones_priorizadas.map((r, i) => (
-                      <li key={i}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+
+            {analysis &&
+              sections.map((section) => {
+                const items = analysis[section] as string[] | undefined;
+                if (!items || items.length === 0) return null;
+                return (
+                  <div key={section} className="mt-4">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      {SECTION_LABELS[section]}
+                    </h4>
+                    <ul className="mt-2 flex flex-col gap-3">
+                      {items.map((item, i) => (
+                        <li key={i} className="text-sm text-slate-700">
+                          <p>{item}</p>
+                          <LinkedinCommentThread
+                            linkedinProfileId={latest.id}
+                            coachId={coachId}
+                            section={section}
+                            itemIndex={i}
+                            comments={commentsFor(latest.id, section, i)}
+                            placeholder="Tu sugerencia sobre este punto..."
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+
+            <div className="mt-5 border-t border-slate-100 pt-4">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Comentario general del perfil
+              </h4>
+              <LinkedinCommentThread
+                linkedinProfileId={latest.id}
+                coachId={coachId}
+                section={null}
+                itemIndex={null}
+                comments={commentsFor(latest.id, null, null)}
+                placeholder="Feedback general sobre el perfil de LinkedIn..."
+              />
+            </div>
           </>
         )}
       </div>

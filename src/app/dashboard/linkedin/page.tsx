@@ -13,6 +13,40 @@ export default async function LinkedinPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  type LinkedinComment = {
+    id: string;
+    linkedin_profile_id: string;
+    section: string | null;
+    item_index: number | null;
+    comment: string;
+    seen_by_user: boolean;
+  };
+
+  const profileIds = (items ?? []).map((li) => li.id);
+  const { data: comments } = profileIds.length
+    ? await supabase
+        .from("linkedin_comments")
+        .select("id, linkedin_profile_id, section, item_index, comment, seen_by_user")
+        .in("linkedin_profile_id", profileIds)
+    : { data: [] as LinkedinComment[] };
+
+  const unseenIds = (comments ?? [])
+    .filter((c) => !c.seen_by_user)
+    .map((c) => c.id);
+  if (unseenIds.length > 0) {
+    await supabase
+      .from("linkedin_comments")
+      .update({ seen_by_user: true })
+      .in("id", unseenIds);
+  }
+
+  const commentsByProfile = new Map<string, LinkedinComment[]>();
+  for (const c of (comments ?? []) as LinkedinComment[]) {
+    const list = commentsByProfile.get(c.linkedin_profile_id) ?? [];
+    list.push(c);
+    commentsByProfile.set(c.linkedin_profile_id, list);
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-semibold text-slate-900">
@@ -98,6 +132,7 @@ export default async function LinkedinPage() {
                 canAnalyze={li.extraction_status === "done"}
                 initialScore={li.linkedin_score}
                 initialAnalysis={li.linkedin_analysis}
+                comments={commentsByProfile.get(li.id) ?? []}
               />
             </div>
           ))}

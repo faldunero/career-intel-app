@@ -48,9 +48,15 @@ export default async function DashboardLayout({
       .select("id", { count: "exact", head: true })
       .eq("seen_by_user", false);
 
+    const { count: unseenLinkedinComments } = await supabase
+      .from("linkedin_comments")
+      .select("id", { count: "exact", head: true })
+      .eq("seen_by_user", false);
+
     if (pendingTasks) badges["/dashboard/tasks"] = pendingTasks;
     if (newInterviews) badges["/dashboard/interview"] = newInterviews;
     if (unseenCvComments) badges["/dashboard/cv"] = unseenCvComments;
+    if (unseenLinkedinComments) badges["/dashboard/linkedin"] = unseenLinkedinComments;
   }
 
   if (role === "coach") {
