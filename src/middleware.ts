@@ -42,17 +42,15 @@ export async function middleware(request: NextRequest) {
   // segundo factor en esta sesión, lo mandamos a verificarlo antes de
   // dejarlo entrar a cualquier página protegida.
   //
-  // Nota: NO usamos "nextLevel" de getAuthenticatorAssuranceLevel()
-  // porque tiene un bug conocido de Supabase donde a veces no detecta
-  // un factor verificado recién después del login. En cambio,
-  // revisamos user.factors directamente (que sí viene poblado
-  // correctamente por getUser()) y comparamos contra el nivel actual
-  // real de la sesión.
+  // Nota: NO usamos "nextLevel" de getAuthenticatorAssuranceLevel() ni
+  // "user.factors" de getUser() — confirmamos con debug que ninguno
+  // de los dos viene poblado de forma confiable en este contexto.
+  // listFactors() es la función dedicada de Supabase para esto y sí
+  // funciona.
   if (user && (isProtectedRoute || isMfaChallengeRoute)) {
+    const { data: factorsData } = await supabase.auth.mfa.listFactors();
     const hasVerifiedTotp =
-      user.factors?.some(
-        (f) => f.status === "verified" && f.factor_type === "totp"
-      ) ?? false;
+      factorsData?.totp?.some((f) => f.status === "verified") ?? false;
 
     const { data: aal } =
       await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
