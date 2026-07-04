@@ -30,6 +30,7 @@ type Opportunity = {
   next_action: string | null;
   next_action_date: string | null;
   notes: string | null;
+  job_match_id?: string | null;
 };
 
 type Comment = {
@@ -281,6 +282,17 @@ export default function OpportunityCard({
           {opp.next_action_date
             ? ` (${new Date(opp.next_action_date + "T00:00:00").toLocaleDateString("es-CL")})`
             : ""}
+        </p>
+      )}
+
+      {opp.job_match_id && (
+        <p className="mt-2">
+          <a
+            href="/dashboard/matching"
+            className="text-xs text-blue-700 hover:underline"
+          >
+            🔗 Viene de un análisis de Matching — ver detalle completo
+          </a>
         </p>
       )}
 

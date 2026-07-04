@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import OpportunityCommentThread from "./opportunity-comment-thread";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -40,15 +41,18 @@ type Opportunity = {
   next_action_date: string | null;
   notes: string | null;
   created_at: string;
+  job_match_id: string | null;
 };
 
 export default function OpportunityAccordionItem({
   opp,
   coachId,
+  userId,
   comments,
 }: {
   opp: Opportunity;
   coachId: string;
+  userId: string;
   comments: Comment[];
 }) {
   const [open, setOpen] = useState(false);
@@ -94,7 +98,18 @@ export default function OpportunityAccordionItem({
 
       {open && (
         <div className="border-t border-slate-100 px-4 pb-5 pt-3">
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+          {opp.job_match_id && (
+            <p>
+              <Link
+                href={`/dashboard/coach/${userId}/matching`}
+                className="text-xs text-blue-700 hover:underline"
+              >
+                🔗 Creada desde un análisis de Matching — ver detalle completo
+              </Link>
+            </p>
+          )}
+
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
             {opp.industry && <span>Industria: {opp.industry}</span>}
             {opp.source && <span>Fuente: {opp.source}</span>}
             {opp.priority && <span>Prioridad: {opp.priority}</span>}

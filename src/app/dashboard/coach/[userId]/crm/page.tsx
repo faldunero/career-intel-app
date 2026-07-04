@@ -20,12 +20,13 @@ export default async function CoachUserCrmPage({
   const { data: opportunities } = await supabase
     .from("opportunities")
     .select(
-      "id, company, job_title, industry, source, url, status, priority, next_action, next_action_date, notes, created_at"
+      "id, company, job_title, industry, source, url, status, priority, next_action, next_action_date, notes, created_at, job_match_id"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
   const opps = opportunities ?? [];
+  const porPostular = opps.filter((o) => o.status === "por_postular").length;
   const postulaciones = opps.filter((o) => o.status !== "por_postular").length;
   const entrevistas = opps.filter((o) => o.status === "entrevista").length;
   const ofertas = opps.filter((o) => o.status === "oferta").length;
@@ -61,7 +62,13 @@ export default async function CoachUserCrmPage({
         CRM de oportunidades
       </h1>
 
-      <div className="mt-6 grid grid-cols-3 gap-3">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <p className="text-xl font-semibold text-slate-900">
+            {porPostular}
+          </p>
+          <p className="text-xs text-slate-500">Por postular</p>
+        </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
           <p className="text-xl font-semibold text-slate-900">
             {postulaciones}
@@ -79,6 +86,11 @@ export default async function CoachUserCrmPage({
           <p className="text-xs text-slate-500">Ofertas</p>
         </div>
       </div>
+      <p className="mt-2 text-xs text-slate-400">
+        &quot;Por postular&quot; son candidatas que el usuario guardó pero
+        todavía no envía; no cuentan como postulación hasta que cambien de
+        estado.
+      </p>
 
       <div className="mt-6 flex flex-col gap-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -94,6 +106,7 @@ export default async function CoachUserCrmPage({
             key={o.id}
             opp={o}
             coachId={coachId}
+            userId={userId}
             comments={commentsByOpp.get(o.id) ?? []}
           />
         ))}

@@ -17,12 +17,13 @@ export default async function OpportunitiesPage() {
   const { data: opportunities } = await supabase
     .from("opportunities")
     .select(
-      "id, company, job_title, industry, source, url, status, priority, next_action, next_action_date, notes, created_at"
+      "id, company, job_title, industry, source, url, status, priority, next_action, next_action_date, notes, created_at, job_match_id"
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   const all = opportunities ?? [];
+  const porPostular = all.filter((o) => o.status === "por_postular").length;
   const postulaciones = all.filter((o) => o.status !== "por_postular").length;
   const entrevistas = all.filter((o) => o.status === "entrevista").length;
   const ofertas = all.filter((o) => o.status === "oferta").length;
@@ -74,12 +75,17 @@ export default async function OpportunitiesPage() {
         métricas de búsqueda laboral.
       </p>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <StatCard label="Por postular" value={porPostular} />
         <StatCard label="Postulaciones" value={postulaciones} />
         <StatCard label="En entrevista" value={entrevistas} />
         <StatCard label="Ofertas" value={ofertas} />
         <StatCard label="Tasa de respuesta" value={`${tasaRespuesta}%`} />
       </div>
+      <p className="mt-2 text-xs text-slate-400">
+        &quot;Por postular&quot; son vacantes que guardaste pero todavía no
+        envías tu postulación.
+      </p>
 
       <div className="mt-6">
         <AddOpportunityForm userId={user.id} />
