@@ -85,6 +85,8 @@ export default async function DashboardLayout({
   }
 
   if (role === "coach") {
+    let pendingSignal = 0;
+
     const { data: myCompletedSessions } = await supabase
       .from("interview_sessions")
       .select("id")
@@ -101,10 +103,34 @@ export default async function DashboardLayout({
       const commentedSet = new Set(
         (commentedSessions ?? []).map((c) => c.session_id)
       );
-      const uncommented = sessionIds.filter((id) => !commentedSet.has(id));
-      if (uncommented.length > 0) {
-        badges["/dashboard/coach"] = uncommented.length;
-      }
+      pendingSignal += sessionIds.filter((id) => !commentedSet.has(id)).length;
+    }
+
+    const { data: myCompletedTasks } = await supabase
+      .from("coach_tasks")
+      .select("id")
+      .eq("coach_id", user.id)
+      .eq("status", "completada");
+
+    if (myCompletedTasks && myCompletedTasks.length > 0) {
+      const taskIds = myCompletedTasks.map((t) => t.id);
+      const { data: commentedTasks } = await supabase
+        .from("coach_task_comments")
+        .select("task_id")
+        .in("task_id", taskIds);
+
+      const commentedSet = new Set((commentedTasks ?? []).map((c) => c.task_id));
+      pendingSignal += taskIds.filter((id) => !commentedSet.has(id)).length;
+    }
+
+    // Nota: el punto del sidebar solo mira entrevistas y tareas completadas
+    // sin comentar (las señales más urgentes: alguien ya hizo algo y
+    // espera respuesta). El inbox completo en /dashboard/coach revisa
+    // 7 categorías en total (incluye CV, LinkedIn, Matching, CRM y
+    // Calendario) — no se replica todo aquí para no sumar ~14 consultas
+    // extra en cada navegación del coach.
+    if (pendingSignal > 0) {
+      badges["/dashboard/coach"] = pendingSignal;
     }
   }
 
