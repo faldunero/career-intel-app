@@ -126,7 +126,8 @@ export default function Sidebar({
       id: "admin",
       title: "Administración",
       items: [
-        { label: "Administradores", href: "/dashboard/admin" },
+        { label: "Dashboard", href: "/dashboard/admin" },
+        { label: "Administradores", href: "/dashboard/admin/administradores" },
         { label: "Coaches", href: "/dashboard/admin/coaches" },
         {
           label: "Usuarios",

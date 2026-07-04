@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import CreateCoachForm from "../create-coach-form";
-import CoachCard from "../coach-card";
+import CoachesList from "../coaches-list";
 
 export default async function AdminCoachesPage() {
   const supabase = await createClient();
@@ -34,9 +34,9 @@ export default async function AdminCoachesPage() {
     .from("coach_assignments")
     .select("coach_id");
 
-  const coachCounts = new Map<string, number>();
+  const coachCounts: Record<string, number> = {};
   for (const a of assignments ?? []) {
-    coachCounts.set(a.coach_id, (coachCounts.get(a.coach_id) ?? 0) + 1);
+    coachCounts[a.coach_id] = (coachCounts[a.coach_id] ?? 0) + 1;
   }
 
   return (
@@ -50,20 +50,8 @@ export default async function AdminCoachesPage() {
           </h2>
           <CreateCoachForm />
         </div>
-        <div className="mt-4 flex flex-col gap-2">
-          {(!coaches || coaches.length === 0) && (
-            <p className="text-sm text-slate-500">
-              No hay coaches todavía. Crea el primero con el botón de
-              arriba.
-            </p>
-          )}
-          {(coaches ?? []).map((c) => (
-            <CoachCard
-              key={c.id}
-              coach={c}
-              assignedCount={coachCounts.get(c.id) ?? 0}
-            />
-          ))}
+        <div className="mt-4">
+          <CoachesList coaches={coaches ?? []} coachCounts={coachCounts} />
         </div>
       </div>
     </div>
