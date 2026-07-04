@@ -46,9 +46,9 @@ export default async function CoachUserSummaryPage({
     <div className="mx-auto max-w-2xl">
       <Link
         href="/dashboard/coach"
-        className="text-sm text-slate-500 underline hover:text-slate-800"
+        className="text-sm text-slate-500 hover:text-slate-800"
       >
-        ← Volver a mis usuarios
+        Volver a mis usuarios
       </Link>
       <h1 className="mt-3 text-2xl font-semibold text-slate-900">
         {profile.full_name ?? profile.email ?? "Usuario"}

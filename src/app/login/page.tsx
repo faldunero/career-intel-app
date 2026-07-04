@@ -70,9 +70,9 @@ function LoginForm() {
       <div className="w-full max-w-sm border border-black bg-white p-8">
         <Link
           href="/"
-          className="mb-4 inline-block text-xs text-[#555] underline hover:text-black"
+          className="mb-4 inline-block text-xs text-[#555] hover:text-black"
         >
-          ← Volver al inicio
+          Volver al inicio
         </Link>
         <Link
           href="/"
@@ -144,7 +144,7 @@ function LoginForm() {
               </label>
               <Link
                 href="/forgot-password"
-                className="text-xs text-[#555] underline hover:text-black"
+                className="text-xs text-[#555] hover:text-black"
               >
                 ¿Olvidaste tu contraseña?
               </Link>

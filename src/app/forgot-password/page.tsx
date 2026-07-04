@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
             </form>
 
             <p className="mt-6 text-center text-sm text-[#555]">
-              <Link href="/login" className="font-medium text-black underline">
+              <Link href="/login" className="font-medium text-black hover:text-slate-600">
                 Volver a iniciar sesión
               </Link>
             </p>

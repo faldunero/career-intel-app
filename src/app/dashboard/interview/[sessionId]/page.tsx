@@ -40,9 +40,9 @@ export default async function InterviewSessionPage({
     <div className="mx-auto max-w-2xl">
       <Link
         href="/dashboard/interview"
-        className="text-sm text-slate-500 underline hover:text-slate-800"
+        className="text-sm text-slate-500 hover:text-slate-800"
       >
-        ← Volver a mis entrevistas
+        Volver a mis entrevistas
       </Link>
       <h1 className="mt-3 text-2xl font-semibold text-slate-900">
         Entrevista: {TYPE_LABELS[session.interview_type] ?? session.interview_type}
