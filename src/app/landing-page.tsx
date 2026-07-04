@@ -421,7 +421,7 @@ export default function LandingPage() {
             <p>
               &copy; 2026 Executive Transition. Todos los derechos
               reservados. |{" "}
-              <a href="#" style={{ color: "#666", textDecoration: "none" }}>
+              <a href="/privacidad" style={{ color: "#666", textDecoration: "none" }}>
                 Política de Privacidad
               </a>{" "}
               |{" "}

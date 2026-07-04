@@ -95,17 +95,36 @@ export default async function DashboardLayout({
     }
   }
 
+  const ROLE_LABELS: Record<string, string> = {
+    usuario: "Usuario",
+    coach: "Coach",
+    administrador: "Administrador",
+  };
+
+  const today = new Date().toLocaleDateString("es-CL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar
-        role={role}
-        displayName={displayName}
-        careerScore={profile?.career_score ?? null}
-        badges={badges}
-      />
-      <main className="flex-1 overflow-y-auto bg-slate-50 px-6 py-10">
-        {children}
-      </main>
+      <Sidebar role={role} careerScore={profile?.career_score ?? null} badges={badges} />
+      <div className="flex flex-1 flex-col overflow-y-auto bg-slate-50">
+        <div className="flex justify-end px-6 pt-6">
+          <div className="text-right">
+            <p className="text-sm font-semibold text-slate-900">
+              {displayName}
+            </p>
+            <p className="text-xs text-slate-500">
+              {ROLE_LABELS[role] ?? role}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-400">{today}</p>
+          </div>
+        </div>
+        <main className="flex-1 px-6 pb-10">{children}</main>
+      </div>
     </div>
   );
 }

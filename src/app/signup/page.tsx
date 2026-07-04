@@ -21,6 +21,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [acceptedPolicy, setAcceptedPolicy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,10 @@ export default function SignupPage() {
     }
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden.");
+      return;
+    }
+    if (!acceptedPolicy) {
+      setError("Debes aceptar la Política de Privacidad para continuar.");
       return;
     }
     if (captchaEnabled && !captchaToken) {
@@ -234,6 +239,22 @@ export default function SignupPage() {
               placeholder="Repite tu contraseña"
             />
           </div>
+
+          <label className="flex items-start gap-2 text-xs text-[#555]">
+            <input
+              type="checkbox"
+              checked={acceptedPolicy}
+              onChange={(e) => setAcceptedPolicy(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              He leído y acepto la{" "}
+              <Link href="/privacidad" target="_blank" className="underline text-black">
+                Política de Privacidad
+              </Link>{" "}
+              y el tratamiento de mis datos personales descrito en ella.
+            </span>
+          </label>
 
           {captchaEnabled && (
             <TurnstileWidget

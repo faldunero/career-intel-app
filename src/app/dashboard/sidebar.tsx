@@ -46,20 +46,12 @@ function ScoreBadge({ score }: { score: number | null }) {
   );
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  usuario: "Usuario",
-  coach: "Coach",
-  administrador: "Administrador",
-};
-
 export default function Sidebar({
   role,
-  displayName,
   careerScore,
   badges: serverBadges,
 }: {
   role: string;
-  displayName: string;
   careerScore: number | null;
   badges: Record<string, number>;
 }) {
@@ -221,7 +213,10 @@ export default function Sidebar({
   groups.push({
     id: "cuenta",
     title: "Cuenta",
-    items: [{ label: "Seguridad", href: "/dashboard/security" }],
+    items: [
+      { label: "Seguridad", href: "/dashboard/security" },
+      { label: "Privacidad", href: "/dashboard/privacidad" },
+    ],
   });
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
@@ -254,12 +249,6 @@ export default function Sidebar({
         >
           Career Intelligence AI
         </Link>
-        <p className="mt-2 truncate text-base font-semibold text-white">
-          {displayName}
-        </p>
-        <p className="mt-0.5 text-xs font-medium text-[#999]">
-          {ROLE_LABELS[role] ?? role}
-        </p>
 
         {role === "usuario" && <ScoreBadge score={careerScore} />}
 
