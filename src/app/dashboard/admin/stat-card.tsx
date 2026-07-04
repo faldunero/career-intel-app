@@ -31,11 +31,11 @@ export default function StatCard({
         </p>
       </div>
       <span
-        className={`mt-4 text-xs font-medium underline ${
-          tone === "warning" ? "text-white" : "text-black"
+        className={`mt-4 text-xs font-medium ${
+          tone === "warning" ? "text-[#ccc]" : "text-[#666]"
         }`}
       >
-        Ver detalle →
+        Ver detalle
       </span>
     </Link>
   );

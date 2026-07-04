@@ -1,12 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import Sidebar from "./sidebar";
-import GlobalSearch from "@/components/global-search";
-import {
-  BackHomeNav,
-  FullscreenToggle,
-  UserMenu,
-} from "@/components/topbar-actions";
+import DashboardShell from "./dashboard-shell";
 
 export default async function DashboardLayout({
   children,
@@ -115,27 +109,15 @@ export default async function DashboardLayout({
   });
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar role={role} careerScore={profile?.career_score ?? null} badges={badges} />
-      <div className="flex flex-1 flex-col overflow-y-auto bg-slate-50">
-        <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-3">
-          <BackHomeNav />
-          <GlobalSearch />
-          <div className="flex items-center gap-3">
-            <FullscreenToggle />
-            <div className="text-right">
-              <p className="text-sm font-semibold text-slate-900">
-                {displayName}
-              </p>
-              <p className="text-xs text-slate-500">
-                {ROLE_LABELS[role] ?? role} · {today}
-              </p>
-            </div>
-            <UserMenu displayName={displayName} />
-          </div>
-        </div>
-        <main className="flex-1 px-6 py-10">{children}</main>
-      </div>
-    </div>
+    <DashboardShell
+      role={role}
+      careerScore={profile?.career_score ?? null}
+      badges={badges}
+      displayName={displayName}
+      roleLabel={ROLE_LABELS[role] ?? role}
+      today={today}
+    >
+      {children}
+    </DashboardShell>
   );
 }
