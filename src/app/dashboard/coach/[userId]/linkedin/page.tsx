@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCoachViewedUser } from "@/lib/coach-guard";
 import LinkedinCommentThread from "./linkedin-comment-thread";
 
-type LinkedinAnalysis = {
+type LinkedinAnalysisT = {
   resumen?: string;
   diferencias_con_cv?: string[];
   informacion_faltante_en_linkedin?: string[];
@@ -15,7 +15,6 @@ type Comment = {
   id: string;
   linkedin_profile_id: string;
   section: string | null;
-  item_index: number | null;
   comment: string;
   created_at: string;
 };
@@ -27,6 +26,37 @@ const SECTION_LABELS: Record<string, string> = {
   logros_omitidos: "Logros omitidos",
   recomendaciones_priorizadas: "Recomendaciones priorizadas",
 };
+
+// Las categorías tipo "lista de palabras sueltas" se ven mejor como chips.
+// Las que son frases con sustancia se ven mejor como lista.
+const CHIP_SECTIONS = new Set(["palabras_clave_faltantes"]);
+
+function KeywordChips({ items }: { items: string[] }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map((item, i) => (
+        <span
+          key={i}
+          className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"
+        >
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function TextList({ items }: { items: string[] }) {
+  return (
+    <ul className="flex flex-col gap-2 pl-5 text-sm text-slate-700">
+      {items.map((item, i) => (
+        <li key={i} className="list-disc">
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default async function CoachUserLinkedinPage({
   params,
@@ -46,7 +76,7 @@ export default async function CoachUserLinkedinPage({
   const { data: allComments } = profileIds.length
     ? await supabase
         .from("linkedin_comments")
-        .select("id, linkedin_profile_id, section, item_index, comment, created_at")
+        .select("id, linkedin_profile_id, section, comment, created_at")
         .in("linkedin_profile_id", profileIds)
         .order("created_at", { ascending: true })
     : { data: [] as Comment[] };
@@ -58,20 +88,16 @@ export default async function CoachUserLinkedinPage({
     commentsByProfile.set(c.linkedin_profile_id, list);
   }
 
-  function commentsFor(
-    profileId: string,
-    section: string | null,
-    itemIndex: number | null
-  ) {
+  function commentsFor(profileId: string, section: string | null) {
     return (commentsByProfile.get(profileId) ?? []).filter(
-      (c) => c.section === section && c.item_index === itemIndex
+      (c) => c.section === section
     );
   }
 
   const latest = linkedinProfiles?.[0];
-  const analysis = latest?.linkedin_analysis as LinkedinAnalysis | null | undefined;
+  const analysis = latest?.linkedin_analysis as LinkedinAnalysisT | null | undefined;
 
-  const sections: Array<keyof LinkedinAnalysis> = [
+  const sections: Array<keyof LinkedinAnalysisT> = [
     "diferencias_con_cv",
     "informacion_faltante_en_linkedin",
     "palabras_clave_faltantes",
@@ -100,45 +126,58 @@ export default async function CoachUserLinkedinPage({
         )}
         {latest && (
           <>
-            <p className="text-3xl font-semibold text-slate-900">
-              {latest.linkedin_score ?? "—"}
-              <span className="text-sm font-normal text-slate-400">
-                /100 LinkedIn Score
-              </span>
-            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-3xl font-semibold text-slate-900">
+                {latest.linkedin_score ?? "—"}
+              </p>
+              <span className="text-sm text-slate-400">/100 LinkedIn Score</span>
+            </div>
             {analysis?.resumen && (
               <p className="mt-2 text-sm text-slate-600">{analysis.resumen}</p>
             )}
 
             {analysis &&
-              sections.map((section) => {
+              sections.map((section, idx) => {
                 const items = analysis[section] as string[] | undefined;
                 if (!items || items.length === 0) return null;
+                const sectionComments = commentsFor(latest.id, section);
                 return (
-                  <div key={section} className="mt-4">
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      {SECTION_LABELS[section]}
-                    </h4>
-                    <ul className="mt-2 flex flex-col gap-3">
-                      {items.map((item, i) => (
-                        <li key={i} className="text-sm text-slate-700">
-                          <p>{item}</p>
-                          <LinkedinCommentThread
-                            linkedinProfileId={latest.id}
-                            coachId={coachId}
-                            section={section}
-                            itemIndex={i}
-                            comments={commentsFor(latest.id, section, i)}
-                            placeholder="Tu sugerencia sobre este punto..."
-                          />
-                        </li>
-                      ))}
-                    </ul>
+                  <div
+                    key={section}
+                    className={`py-5 ${idx > 0 ? "border-t border-slate-100" : "pt-5"}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        {SECTION_LABELS[section]}
+                      </h4>
+                      {sectionComments.length > 0 && (
+                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          {sectionComments.length} comentario
+                          {sectionComments.length !== 1 ? "s" : ""}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-3">
+                      {CHIP_SECTIONS.has(section) ? (
+                        <KeywordChips items={items} />
+                      ) : (
+                        <TextList items={items} />
+                      )}
+                    </div>
+
+                    <LinkedinCommentThread
+                      linkedinProfileId={latest.id}
+                      coachId={coachId}
+                      section={section}
+                      comments={sectionComments}
+                      placeholder={`Tu opinión sobre "${SECTION_LABELS[section]}"...`}
+                    />
                   </div>
                 );
               })}
 
-            <div className="mt-5 border-t border-slate-100 pt-4">
+            <div className="border-t border-slate-100 pt-5">
               <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Comentario general del perfil
               </h4>
@@ -146,8 +185,7 @@ export default async function CoachUserLinkedinPage({
                 linkedinProfileId={latest.id}
                 coachId={coachId}
                 section={null}
-                itemIndex={null}
-                comments={commentsFor(latest.id, null, null)}
+                comments={commentsFor(latest.id, null)}
                 placeholder="Feedback general sobre el perfil de LinkedIn..."
               />
             </div>
