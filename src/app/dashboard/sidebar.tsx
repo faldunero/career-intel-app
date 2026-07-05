@@ -139,6 +139,7 @@ export default function Sidebar({
           badgeTitle: "solicitudes pendientes",
         },
         { label: "Datos de prueba", href: "/dashboard/admin/datos-prueba" },
+        { label: "Mantenedor de cuentas", href: "/dashboard/admin/mantenedor" },
       ],
     });
   } else if (role === "coach") {

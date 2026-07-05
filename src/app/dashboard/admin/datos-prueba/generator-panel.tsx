@@ -30,7 +30,7 @@ export default function GeneratorPanel({
       return;
     }
     setResult(
-      `Creados: ${data.coaches} coaches, ${data.users} usuarios, ${data.headhunters} headhunters. Contraseña para todos: ${data.password}`
+      `Creados: ${data.coaches} coaches, ${data.users} usuarios, ${data.headhunters} headhunters, ${data.opportunities} oportunidades, ${data.tasks} tareas, ${data.events} eventos. Contraseña para todos: ${data.password}`
     );
     router.refresh();
   }
@@ -63,13 +63,14 @@ export default function GeneratorPanel({
           Generar set de prueba
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          Crea 3 coaches, 6 usuarios (algunos asignados a esos coaches,
-          algunos sin asignar, algunos visibles para headhunters) y 2
-          headhunters con acceso ya aprobado. Todos quedan marcados como
-          &quot;TEST&quot; en las listas de Admin, con el prefijo
-          <code className="mx-1 rounded bg-slate-100 px-1">
-            test.
-          </code>
+          Crea 5 coaches, 15 usuarios (con rubro/cargo variados, algunos
+          asignados a esos coaches y otros sin asignar, algunos
+          visibles para headhunters) y 3 headhunters con acceso ya
+          aprobado. También genera oportunidades (CRM), tareas y
+          eventos de calendario de ejemplo para esos usuarios, con
+          algún comentario de coach ya escrito. Todos quedan marcados
+          como &quot;TEST&quot; en las listas de Admin, con el prefijo
+          <code className="mx-1 rounded bg-slate-100 px-1">test.</code>
           en su correo.
         </p>
         <button

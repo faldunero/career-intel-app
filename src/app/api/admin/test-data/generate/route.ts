@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 const TEST_PASSWORD = "TestData2026!";
 const RUN_TAG = () => Date.now().toString().slice(-6);
 
-const INDUSTRIES = ["Tecnología", "Retail", "Banca", "Salud", "Minería"];
+const INDUSTRIES = ["Tecnología", "Retail", "Banca", "Salud", "Minería", "Educación", "Construcción"];
 const POSITIONS = [
   "Gerente de Operaciones",
   "Subgerente de Tecnología",
@@ -15,8 +15,13 @@ const POSITIONS = [
   "Analista Senior",
   "Director Comercial",
   "Product Manager",
+  "Jefe de Finanzas",
+  "Coordinador de RRHH",
 ];
-const SENIORITIES = ["Jefatura", "Gerencia", "Dirección", "Senior"];
+const SENIORITIES = ["Jefatura", "Gerencia", "Dirección", "Senior", "Semi-Senior"];
+const COMPANIES = ["Acme Corp", "Norte Retail", "Banco Andino", "Salud Total", "Minera Sur"];
+const OPP_STATUSES = ["por_postular", "postulado", "entrevista", "oferta", "rechazado"];
+const TASK_STATUSES = ["pendiente", "en_progreso", "completada"];
 
 function pick<T>(arr: T[], i: number): T {
   return arr[i % arr.length];
@@ -30,11 +35,19 @@ export async function POST() {
 
   const admin = createAdminClient();
   const tag = RUN_TAG();
-  const created = { coaches: 0, users: 0, headhunters: 0, errors: [] as string[] };
+  const created = {
+    coaches: 0,
+    users: 0,
+    headhunters: 0,
+    opportunities: 0,
+    tasks: 0,
+    events: 0,
+    errors: [] as string[],
+  };
 
   // ---------- Coaches ----------
   const coachIds: string[] = [];
-  for (let i = 1; i <= 3; i++) {
+  for (let i = 1; i <= 5; i++) {
     const email = `test.coach${i}.${tag}@example.com`;
     const { data, error } = await admin.auth.admin.createUser({
       email,
@@ -48,11 +61,7 @@ export async function POST() {
     }
     await admin
       .from("profiles")
-      .update({
-        role: "coach",
-        must_change_password: false,
-        is_test_data: true,
-      })
+      .update({ role: "coach", must_change_password: false, is_test_data: true })
       .eq("id", data.user.id);
     coachIds.push(data.user.id);
     created.coaches++;
@@ -60,7 +69,7 @@ export async function POST() {
 
   // ---------- Usuarios ----------
   const userIds: string[] = [];
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 15; i++) {
     const email = `test.usuario${i}.${tag}@example.com`;
     const { data, error } = await admin.auth.admin.createUser({
       email,
@@ -77,8 +86,6 @@ export async function POST() {
     const position = pick(POSITIONS, i);
     const seniority = pick(SENIORITIES, i);
     const profileCompleted = i % 3 !== 0;
-    // La mitad de los usuarios de prueba queda visible para
-    // headhunters, para que el buscador tenga resultados que mostrar.
     const visibleToHeadhunters = i % 2 === 0;
 
     await admin
@@ -93,7 +100,7 @@ export async function POST() {
         city: "Santiago",
         country: "Chile",
         profile_completed: profileCompleted,
-        career_score: profileCompleted ? 50 + i * 6 : null,
+        career_score: profileCompleted ? 40 + ((i * 7) % 55) : null,
         visible_to_headhunters: visibleToHeadhunters,
       })
       .eq("id", data.user.id);
@@ -101,18 +108,73 @@ export async function POST() {
     userIds.push(data.user.id);
     created.users++;
 
-    // La mayoría queda asignada a algún coach de prueba; un par queda
-    // sin asignar para poder probar el badge de "sin coach".
-    if (coachIds.length > 0 && i <= 4) {
-      const coachId = pick(coachIds, i);
+    // La mayoría queda asignada a algún coach de prueba; algunos
+    // quedan sin asignar para probar el badge de "sin coach".
+    let coachId: string | null = null;
+    if (coachIds.length > 0 && i % 4 !== 0) {
+      coachId = pick(coachIds, i);
       await admin
         .from("coach_assignments")
         .insert({ coach_id: coachId, user_id: data.user.id });
     }
+
+    // Oportunidades (CRM) — 1 a 2 por usuario, estados variados.
+    const oppCount = (i % 2) + 1;
+    for (let j = 0; j < oppCount; j++) {
+      const status = pick(OPP_STATUSES, i + j);
+      const { data: opp } = await admin
+        .from("opportunities")
+        .insert({
+          user_id: data.user.id,
+          company: pick(COMPANIES, i + j),
+          job_title: pick(POSITIONS, i + j + 1),
+          status,
+          source: "Datos de prueba",
+        })
+        .select("id")
+        .single();
+
+      // Si tiene coach y la oportunidad quedó activa, deja un
+      // comentario de ejemplo para probar el feed de comentarios.
+      if (opp && coachId && status !== "por_postular" && j === 0) {
+        await admin.from("opportunity_comments").insert({
+          opportunity_id: opp.id,
+          coach_id: coachId,
+          comment: "Comentario de prueba: revisa el fit cultural antes de avanzar.",
+        });
+      }
+    }
+    created.opportunities += oppCount;
+
+    // Tareas — solo si tiene coach asignado (las asigna el coach).
+    if (coachId) {
+      const taskStatus = pick(TASK_STATUSES, i);
+      await admin.from("coach_tasks").insert({
+        coach_id: coachId,
+        user_id: data.user.id,
+        title: `Tarea de prueba ${i}`,
+        description: "Generada automáticamente por el set de datos de prueba.",
+        status: taskStatus,
+      });
+      created.tasks++;
+    }
+
+    // Evento de calendario — la mitad de los usuarios.
+    if (i % 2 === 0) {
+      const daysOffset = (i % 10) - 5; // mezcla pasados y futuros
+      const eventDate = new Date(Date.now() + daysOffset * 24 * 60 * 60 * 1000);
+      await admin.from("calendar_events").insert({
+        user_id: data.user.id,
+        event_type: "sesion_coach",
+        title: `Sesión de prueba ${i}`,
+        event_date: eventDate.toISOString().slice(0, 10),
+      });
+      created.events++;
+    }
   }
 
   // ---------- Headhunters (ya aprobados, con acceso vigente 30 días) ----------
-  for (let i = 1; i <= 2; i++) {
+  for (let i = 1; i <= 3; i++) {
     const email = `test.headhunter${i}.${tag}@example.com`;
     const { data, error } = await admin.auth.admin.createUser({
       email,
@@ -125,9 +187,7 @@ export async function POST() {
       continue;
     }
 
-    const expiresAt = new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000
-    ).toISOString();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
     await admin
       .from("profiles")
@@ -155,10 +215,5 @@ export async function POST() {
     created.headhunters++;
   }
 
-  return NextResponse.json({
-    ok: true,
-    tag,
-    password: TEST_PASSWORD,
-    ...created,
-  });
+  return NextResponse.json({ ok: true, tag, password: TEST_PASSWORD, ...created });
 }
