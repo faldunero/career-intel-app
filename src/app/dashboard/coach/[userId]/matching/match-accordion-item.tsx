@@ -22,6 +22,7 @@ type Match = {
   id: string;
   company: string | null;
   job_title: string | null;
+  job_description: string | null;
   matching_general: number | null;
   matching_ats: number | null;
   matching_tecnico: number | null;
@@ -65,6 +66,7 @@ export default function MatchAccordionItem({
   comments: Comment[];
 }) {
   const [open, setOpen] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
   const analysis = match.analysis;
 
   function commentsFor(section: string | null) {
@@ -121,6 +123,22 @@ export default function MatchAccordionItem({
 
       {open && (
         <div className="border-t border-slate-100 px-4 pb-5">
+          {match.job_description && (
+            <div className="mt-3">
+              <button
+                onClick={() => setShowDescription((v) => !v)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:border-slate-400 hover:text-slate-800"
+              >
+                📄 {showDescription ? "Ocultar" : "Ver"} descripción original de la vacante
+              </button>
+              {showDescription && (
+                <p className="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+                  {match.job_description}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="mt-3 flex flex-wrap gap-3">
             <SubScore label="ATS" score={match.matching_ats} />
             <SubScore label="Técnico" score={match.matching_tecnico} />

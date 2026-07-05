@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCoachViewedUser } from "@/lib/coach-guard";
+import ViewFileButton from "../../view-file-button";
 import LinkedinCommentThread from "./linkedin-comment-thread";
 
 type LinkedinAnalysisT = {
@@ -68,7 +69,7 @@ export default async function CoachUserLinkedinPage({
 
   const { data: linkedinProfiles } = await supabase
     .from("linkedin_profiles")
-    .select("id, linkedin_score, linkedin_analysis, analyzed_at")
+    .select("id, file_name, storage_path, linkedin_score, linkedin_analysis, analyzed_at")
     .eq("user_id", userId)
     .order("analyzed_at", { ascending: false });
 
@@ -126,11 +127,20 @@ export default async function CoachUserLinkedinPage({
         )}
         {latest && (
           <>
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-semibold text-slate-900">
-                {latest.linkedin_score ?? "—"}
-              </p>
-              <span className="text-sm text-slate-400">/100 LinkedIn Score</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-baseline gap-2">
+                <p className="text-3xl font-semibold text-slate-900">
+                  {latest.linkedin_score ?? "—"}
+                </p>
+                <span className="text-sm text-slate-400">/100 LinkedIn Score</span>
+              </div>
+              {latest.storage_path && (
+                <ViewFileButton
+                  bucket="linkedin"
+                  storagePath={latest.storage_path}
+                  label="Ver PDF de LinkedIn"
+                />
+              )}
             </div>
             {analysis?.resumen && (
               <p className="mt-2 text-sm text-slate-600">{analysis.resumen}</p>

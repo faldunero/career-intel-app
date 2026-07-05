@@ -21,7 +21,7 @@ export default async function CoachUserMatchingPage({
   const { data: matches } = await supabase
     .from("job_matches")
     .select(
-      "id, company, job_title, matching_general, matching_ats, matching_tecnico, matching_liderazgo, matching_cultural, matching_experiencia, analysis, created_at"
+      "id, company, job_title, job_description, matching_general, matching_ats, matching_tecnico, matching_liderazgo, matching_cultural, matching_experiencia, analysis, created_at"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
