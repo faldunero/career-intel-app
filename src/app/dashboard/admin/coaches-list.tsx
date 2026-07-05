@@ -3,7 +3,12 @@
 import { useMemo, useState } from "react";
 import CoachCard from "./coach-card";
 
-type Coach = { id: string; full_name: string | null; email: string | null };
+type Coach = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  is_test_data?: boolean;
+};
 
 export default function CoachesList({
   coaches,

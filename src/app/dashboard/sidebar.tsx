@@ -138,6 +138,7 @@ export default function Sidebar({
           href: "/dashboard/admin/headhunters",
           badgeTitle: "solicitudes pendientes",
         },
+        { label: "Datos de prueba", href: "/dashboard/admin/datos-prueba" },
       ],
     });
   } else if (role === "coach") {

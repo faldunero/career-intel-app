@@ -26,7 +26,7 @@ export default async function AdminUsuariosPage() {
 
   const { data: usersOnly } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, profile_completed, career_score")
+    .select("id, full_name, email, role, profile_completed, career_score, is_test_data")
     .eq("role", "usuario")
     .order("created_at", { ascending: false });
 

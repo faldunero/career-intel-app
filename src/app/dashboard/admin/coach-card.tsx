@@ -7,7 +7,12 @@ export default function CoachCard({
   coach,
   assignedCount,
 }: {
-  coach: { id: string; full_name: string | null; email: string | null };
+  coach: {
+    id: string;
+    full_name: string | null;
+    email: string | null;
+    is_test_data?: boolean;
+  };
   assignedCount: number;
 }) {
   const router = useRouter();
@@ -95,6 +100,11 @@ export default function CoachCard({
           <div>
             <p className="text-sm font-medium text-slate-900">
               {coach.full_name ?? "Sin nombre"}
+              {coach.is_test_data && (
+                <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
+                  TEST
+                </span>
+              )}
             </p>
             <p className="text-xs text-slate-500">{coach.email}</p>
             <p className="mt-0.5 text-xs text-slate-400">

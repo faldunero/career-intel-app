@@ -26,7 +26,7 @@ export default async function AdminCoachesPage() {
 
   const { data: coaches } = await supabase
     .from("profiles")
-    .select("id, full_name, email")
+    .select("id, full_name, email, is_test_data")
     .eq("role", "coach")
     .order("created_at", { ascending: false });
 

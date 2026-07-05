@@ -14,6 +14,7 @@ type Request = {
   access_duration_days: number | null;
   reviewed_at: string | null;
   created_at: string;
+  is_test_data?: boolean;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -81,6 +82,11 @@ export default function RequestRow({ request }: { request: Request }) {
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-slate-900">
             {request.full_name} — {request.company}
+            {request.is_test_data && (
+              <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
+                TEST
+              </span>
+            )}
           </p>
           <p className="mt-0.5 text-xs text-slate-400">
             {request.email} · Solicitada el{" "}

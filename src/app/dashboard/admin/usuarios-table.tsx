@@ -12,6 +12,7 @@ type User = {
   role: string;
   profile_completed: boolean;
   career_score: number | null;
+  is_test_data?: boolean;
 };
 type Coach = { id: string; full_name: string | null; email: string | null };
 
@@ -112,7 +113,14 @@ export default function UsuariosTable({
           <tbody>
             {filtered.map((u) => (
               <tr key={u.id} className="border-b border-slate-100">
-                <td className="py-2 pr-4">{u.full_name ?? "—"}</td>
+                <td className="py-2 pr-4">
+                  {u.full_name ?? "—"}
+                  {u.is_test_data && (
+                    <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
+                      TEST
+                    </span>
+                  )}
+                </td>
                 <td className="py-2 pr-4 text-slate-500">{u.email ?? "—"}</td>
                 <td className="py-2 pr-4">
                   {u.profile_completed ? "Completo" : "Pendiente"}
