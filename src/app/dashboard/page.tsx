@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import CareerScoreCard from "./career-score-card";
+import ProbabilityInfoModal from "./probability-info-modal";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -198,19 +199,27 @@ export default async function DashboardPage() {
             </div>
 
             <div className="mt-4 border-t border-slate-100 pt-4">
-              <p className="text-sm text-slate-600">
+              <p className="flex items-center text-sm text-slate-600">
                 <span className="font-medium">
                   Probabilidad estimada de colocación:
                 </span>{" "}
-                {probabilidadColocacion !== null
-                  ? `${probabilidadColocacion}%`
-                  : "Sin datos suficientes todavía"}
+                <span className="ml-1">
+                  {probabilidadColocacion !== null
+                    ? `${probabilidadColocacion}%`
+                    : "Sin datos suficientes todavía"}
+                </span>
+                <ProbabilityInfoModal
+                  result={probabilidadColocacion}
+                  inputs={[
+                    { label: "Career Score", value: profile?.career_score ?? null },
+                    { label: "ATS Score (CV)", value: latestCv?.ats_score ?? null },
+                    { label: "Matching promedio", value: matchingPromedio },
+                  ]}
+                />
               </p>
               <p className="mt-1 text-xs text-slate-400">
-                Es una estimación simple basada en el promedio de tus
-                puntajes disponibles (Career Score, ATS Score, matching
-                promedio) — no es un modelo predictivo real, es solo
-                referencial.
+                Es una estimación simple, no un modelo predictivo real —
+                click en el ícono de arriba para ver el detalle.
               </p>
             </div>
 
