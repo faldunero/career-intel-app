@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import CvPdfViewer from "./cv-pdf-viewer";
 
 export default function CvActions({
   cvId,
+  fileName,
   storagePath,
   extractedText,
 }: {
   cvId: string;
+  fileName: string;
   storagePath: string;
   extractedText: string | null;
 }) {
@@ -122,7 +125,8 @@ export default function CvActions({
   }
 
   return (
-    <div className="mt-3 flex flex-col gap-2">
+    <div className="mt-3 flex flex-col gap-3">
+      <CvPdfViewer storagePath={storagePath} fileName={fileName} />
       <div className="flex flex-wrap gap-3">
         <button
           onClick={handleViewOriginal}

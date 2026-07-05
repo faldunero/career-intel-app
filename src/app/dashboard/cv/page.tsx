@@ -107,6 +107,7 @@ export default async function CvPage() {
               )}
               <CvActions
                 cvId={cv.id}
+                fileName={cv.file_name}
                 storagePath={cv.storage_path}
                 extractedText={cv.extracted_text}
               />

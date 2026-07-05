@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCoachViewedUser } from "@/lib/coach-guard";
 import ViewFileButton from "../../view-file-button";
 import CvCommentThread from "./cv-comment-thread";
+import CvPdfViewer from "./cv-pdf-viewer";
 
 type AtsAnalysis = {
   score_explicado?: string;
@@ -153,6 +154,13 @@ export default async function CoachUserCvPage({
                   {cv.file_name}
                 </p>
                 <ViewFileButton bucket="cvs" storagePath={cv.storage_path} />
+              </div>
+
+              <div className="mt-3">
+                <CvPdfViewer
+                  storagePath={cv.storage_path}
+                  fileName={cv.file_name}
+                />
               </div>
 
               {cv.ats_score !== null && (
