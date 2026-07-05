@@ -34,6 +34,9 @@ export default async function DashboardPage() {
   if (profile?.role === "coach") {
     redirect("/dashboard/coach");
   }
+  if (profile?.role === "headhunter") {
+    redirect("/dashboard/headhunter");
+  }
 
   const { data: latestCv } = await supabase
     .from("cvs")

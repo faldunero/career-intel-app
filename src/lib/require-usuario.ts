@@ -27,6 +27,9 @@ export async function requireUsuario() {
   if (profile?.role === "coach") {
     redirect("/dashboard/coach");
   }
+  if (profile?.role === "headhunter") {
+    redirect("/dashboard/headhunter");
+  }
 
   return { supabase, user };
 }

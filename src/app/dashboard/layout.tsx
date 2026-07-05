@@ -162,6 +162,15 @@ export default async function DashboardLayout({
         badges["/dashboard/admin/usuarios"] = unassignedCount;
       }
     }
+
+    const { count: pendingHeadhunterRequests } = await supabase
+      .from("headhunter_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pendiente");
+
+    if (pendingHeadhunterRequests) {
+      badges["/dashboard/admin/headhunters"] = pendingHeadhunterRequests;
+    }
   }
 
   const ROLE_LABELS: Record<string, string> = {

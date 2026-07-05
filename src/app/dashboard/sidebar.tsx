@@ -133,6 +133,11 @@ export default function Sidebar({
           href: "/dashboard/admin/usuarios",
           badgeTitle: "usuarios sin coach asignado",
         },
+        {
+          label: "Headhunters",
+          href: "/dashboard/admin/headhunters",
+          badgeTitle: "solicitudes pendientes",
+        },
       ],
     });
   } else if (role === "coach") {
@@ -170,6 +175,15 @@ export default function Sidebar({
         ],
       });
     }
+  } else if (role === "headhunter") {
+    groups.push({
+      id: "headhunter",
+      title: "Headhunter",
+      items: [
+        { label: "Buscar candidatos", href: "/dashboard/headhunter" },
+        { label: "Mi acceso", href: "/dashboard/headhunter/mi-acceso" },
+      ],
+    });
   } else {
     groups.push(
       {
