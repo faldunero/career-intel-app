@@ -402,6 +402,21 @@ export default function LandingPage() {
             </div>
 
             <div className="footer-section">
+              <h4>Headhunters</h4>
+              <p>
+                ¿Buscas talento ejecutivo? Solicita acceso a nuestra base
+                de candidatos.
+              </p>
+              <ul>
+                <li>
+                  <a href="/solicitar-acceso-headhunter">
+                    Solicitar acceso
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div className="footer-section">
               <h4>Síguenos</h4>
               <div className="social-links">
                 <a href="#" title="LinkedIn">
