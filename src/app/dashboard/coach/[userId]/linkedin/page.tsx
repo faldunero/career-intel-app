@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCoachViewedUser } from "@/lib/coach-guard";
 import ViewFileButton from "../../view-file-button";
 import LinkedinCommentThread from "./linkedin-comment-thread";
+import LinkedinTextViewer from "./linkedin-text-viewer";
 
 type LinkedinAnalysisT = {
   resumen?: string;
@@ -69,7 +70,9 @@ export default async function CoachUserLinkedinPage({
 
   const { data: linkedinProfiles } = await supabase
     .from("linkedin_profiles")
-    .select("id, file_name, storage_path, linkedin_score, linkedin_analysis, analyzed_at")
+    .select(
+      "id, file_name, storage_path, extracted_text, linkedin_score, linkedin_analysis, analyzed_at"
+    )
     .eq("user_id", userId)
     .order("analyzed_at", { ascending: false });
 
@@ -142,6 +145,9 @@ export default async function CoachUserLinkedinPage({
                 />
               )}
             </div>
+            {latest.extracted_text && (
+              <LinkedinTextViewer text={latest.extracted_text} />
+            )}
             {analysis?.resumen && (
               <p className="mt-2 text-sm text-slate-600">{analysis.resumen}</p>
             )}

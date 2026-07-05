@@ -1,6 +1,7 @@
 import { requireUsuario } from "@/lib/require-usuario";
 import LinkedinUploadForm from "./linkedin-upload-form";
 import LinkedinAnalysis from "./linkedin-analysis";
+import LinkedinActions from "./linkedin-actions";
 
 export default async function LinkedinPage() {
   const { supabase, user } = await requireUsuario();
@@ -8,7 +9,7 @@ export default async function LinkedinPage() {
   const { data: items } = await supabase
     .from("linkedin_profiles")
     .select(
-      "id, file_name, extraction_status, extraction_error, created_at, linkedin_score, linkedin_analysis"
+      "id, file_name, storage_path, extracted_text, extraction_status, extraction_error, created_at, linkedin_score, linkedin_analysis"
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
@@ -126,6 +127,13 @@ export default async function LinkedinPage() {
                 <p className="mt-2 text-xs text-red-600">
                   {li.extraction_error}
                 </p>
+              )}
+              {li.extraction_status === "done" && (
+                <LinkedinActions
+                  linkedinId={li.id}
+                  storagePath={li.storage_path}
+                  extractedText={li.extracted_text}
+                />
               )}
               <LinkedinAnalysis
                 linkedinId={li.id}
