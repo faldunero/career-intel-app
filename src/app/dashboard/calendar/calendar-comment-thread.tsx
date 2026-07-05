@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 type Comment = {
   id: string;
   comment: string;
-  created_at: string;
+  created_at?: string;
 };
 
 export default function CalendarCommentThread({
