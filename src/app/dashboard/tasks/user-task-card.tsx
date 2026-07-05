@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import TaskStatusSelector from "./task-status-selector";
 
 type Task = {
@@ -25,7 +27,33 @@ export default function UserTaskCard({
   comments?: Comment[];
   completed?: boolean;
 }) {
+  const router = useRouter();
+  const supabase = createClient();
   const [open, setOpen] = useState(false);
+  const [dismissing, setDismissing] = useState(false);
+
+  async function handleDismiss() {
+    if (
+      !confirm(
+        "¿Descartar esta tarea? No se marca como completada, pero deja de aparecer como pendiente y no se puede deshacer."
+      )
+    ) {
+      return;
+    }
+    setDismissing(true);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("notification_dismissals").insert({
+        user_id: user.id,
+        item_type: "task",
+        item_id: task.id,
+      });
+    }
+    setDismissing(false);
+    router.refresh();
+  }
 
   return (
     <div
@@ -80,6 +108,15 @@ export default function UserTaskCard({
                 </p>
               ))}
             </div>
+          )}
+          {!completed && (
+            <button
+              onClick={handleDismiss}
+              disabled={dismissing}
+              className="mt-3 text-xs font-medium text-slate-400 underline hover:text-slate-700 disabled:opacity-50"
+            >
+              {dismissing ? "Descartando..." : "Descartar (no aplica / no la voy a hacer)"}
+            </button>
           )}
         </div>
       )}

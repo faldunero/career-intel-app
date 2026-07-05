@@ -36,6 +36,7 @@ type Opportunity = {
 type Comment = {
   id: string;
   comment: string;
+  seen_by_user?: boolean;
 };
 
 export default function OpportunityCard({
@@ -52,6 +53,22 @@ export default function OpportunityCard({
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [markingSeen, setMarkingSeen] = useState(false);
+
+  const unseenComments = comments.filter((c) => c.seen_by_user === false);
+
+  async function handleMarkSeen() {
+    setMarkingSeen(true);
+    await supabase
+      .from("opportunity_comments")
+      .update({ seen_by_user: true })
+      .in(
+        "id",
+        unseenComments.map((c) => c.id)
+      );
+    setMarkingSeen(false);
+    router.refresh();
+  }
 
   const [form, setForm] = useState({
     company: opp.company ?? "",
@@ -310,6 +327,15 @@ export default function OpportunityCard({
               💬 <span className="font-medium">Tu coach:</span> {c.comment}
             </p>
           ))}
+          {unseenComments.length > 0 && (
+            <button
+              onClick={handleMarkSeen}
+              disabled={markingSeen}
+              className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:border-slate-400 hover:text-slate-800 disabled:opacity-50"
+            >
+              {markingSeen ? "Marcando..." : "✓ Marcar como visto"}
+            </button>
+          )}
         </div>
       )}
     </div>

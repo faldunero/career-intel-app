@@ -10,7 +10,15 @@ export default async function TasksPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  const all = tasks ?? [];
+  const { data: dismissals } = await supabase
+    .from("notification_dismissals")
+    .select("item_id")
+    .eq("user_id", user.id)
+    .eq("item_type", "task");
+
+  const dismissedIds = new Set((dismissals ?? []).map((d) => d.item_id));
+
+  const all = (tasks ?? []).filter((t) => !dismissedIds.has(t.id));
   const pendientes = all.filter((t) => t.status !== "completada");
   const completadas = all.filter((t) => t.status === "completada");
 
@@ -52,7 +60,8 @@ export default async function TasksPage() {
         Tareas asignadas por tu coach
       </h1>
       <p className="mt-1 text-sm text-slate-500">
-        Marca cada tarea con su estado a medida que avanzas.
+        Marca cada tarea con su estado a medida que avanzas. Si algo no
+        te aplica, puedes descartarlo sin marcarlo como completado.
       </p>
 
       <div className="mt-6 flex flex-col gap-3">
@@ -60,6 +69,12 @@ export default async function TasksPage() {
           <p className="text-sm text-slate-500">
             Todavía no tienes tareas asignadas. Si tienes un coach
             asignado, va a asignarte tareas desde su panel.
+          </p>
+        )}
+
+        {pendientes.length > 0 && completadas.length > 0 && (
+          <p className="text-xs text-slate-400">
+            {completadas.length} de {all.length} tareas resueltas
           </p>
         )}
 

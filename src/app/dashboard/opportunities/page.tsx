@@ -48,16 +48,6 @@ export default async function OpportunitiesPage() {
         .in("opportunity_id", oppIds)
     : { data: [] as OppComment[] };
 
-  const unseenIds = (comments ?? [])
-    .filter((c) => !c.seen_by_user)
-    .map((c) => c.id);
-  if (unseenIds.length > 0) {
-    await supabase
-      .from("opportunity_comments")
-      .update({ seen_by_user: true })
-      .in("id", unseenIds);
-  }
-
   const commentsByOpp = new Map<string, OppComment[]>();
   for (const c of (comments ?? []) as OppComment[]) {
     const list = commentsByOpp.get(c.opportunity_id) ?? [];

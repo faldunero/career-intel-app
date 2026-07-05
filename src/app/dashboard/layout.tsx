@@ -37,11 +37,25 @@ export default async function DashboardLayout({
   const badges: Record<string, number> = {};
 
   if (role === "usuario") {
-    const { count: pendingTasks } = await supabase
+    const { data: pendingTaskRows } = await supabase
       .from("coach_tasks")
-      .select("id", { count: "exact", head: true })
+      .select("id")
       .eq("user_id", user.id)
       .neq("status", "completada");
+
+    let pendingTasks = pendingTaskRows?.length ?? 0;
+    if (pendingTaskRows && pendingTaskRows.length > 0) {
+      const { data: dismissedTasks } = await supabase
+        .from("notification_dismissals")
+        .select("item_id")
+        .eq("user_id", user.id)
+        .eq("item_type", "task")
+        .in(
+          "item_id",
+          pendingTaskRows.map((t) => t.id)
+        );
+      pendingTasks -= dismissedTasks?.length ?? 0;
+    }
 
     const { count: newInterviews } = await supabase
       .from("interview_sessions")
