@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import CareerScoreCard from "./career-score-card";
 import ProbabilityInfoModal from "./probability-info-modal";
+import AtsScoreInfoModal from "./ats-score-info-modal";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -135,6 +136,7 @@ export default async function DashboardPage() {
         <CareerScoreCard
           initialScore={profile?.career_score ?? null}
           initialAnalysis={profile?.career_score_analysis ?? null}
+          realAtsScore={latestCv?.ats_score ?? null}
           />
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -196,10 +198,17 @@ export default async function DashboardPage() {
                 </p>
                 <p className="text-xs text-slate-500">Matching promedio</p>
               </div>
+              <div>
+                <div className="flex items-center text-xl font-semibold text-slate-900">
+                  {latestCv?.ats_score ?? "—"}
+                  <AtsScoreInfoModal />
+                </div>
+                <p className="text-xs text-slate-500">ATS Score (CV)</p>
+              </div>
             </div>
 
             <div className="mt-4 border-t border-slate-100 pt-4">
-              <p className="flex items-center text-sm text-slate-600">
+              <div className="flex items-center text-sm text-slate-600">
                 <span className="font-medium">
                   Probabilidad estimada de colocación:
                 </span>{" "}
@@ -216,7 +225,7 @@ export default async function DashboardPage() {
                     { label: "Matching promedio", value: matchingPromedio },
                   ]}
                 />
-              </p>
+              </div>
               <p className="mt-1 text-xs text-slate-400">
                 Es una estimación simple, no un modelo predictivo real —
                 click en el ícono de arriba para ver el detalle.

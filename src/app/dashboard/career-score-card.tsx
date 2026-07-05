@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import CareerScoreInfoModal from "./career-score-info-modal";
 
 type Desglose = {
   experiencia: number | null;
@@ -24,32 +25,20 @@ type Analysis = {
   oportunidades_mejora: string[];
 };
 
-const DIMENSION_LABELS: Record<keyof Desglose, string> = {
-  experiencia: "Experiencia",
-  liderazgo: "Liderazgo",
-  innovacion: "Innovación",
-  proyectos_resultados: "Proyectos y resultados",
-  certificaciones: "Certificaciones",
-  idiomas: "Idiomas",
-  networking: "Networking",
-  linkedin: "LinkedIn",
-  ats: "ATS",
-  marca_personal: "Marca personal",
-};
-
 export default function CareerScoreCard({
   initialScore,
   initialAnalysis,
+  realAtsScore,
 }: {
   initialScore: number | null;
   initialAnalysis: Analysis | null;
+  realAtsScore: number | null;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [score, setScore] = useState<number | null>(initialScore);
   const [analysis, setAnalysis] = useState<Analysis | null>(initialAnalysis);
-  const [expanded, setExpanded] = useState(false);
 
   async function handleCalculate() {
     setLoading(true);
@@ -69,7 +58,6 @@ export default function CareerScoreCard({
 
       setScore(data.career_score);
       setAnalysis(data.analysis);
-      setExpanded(true);
       router.refresh();
     } catch {
       setError("No se pudo conectar con el servidor");
@@ -87,7 +75,16 @@ export default function CareerScoreCard({
           </p>
         </div>
         {score !== null && (
-          <p className="text-3xl font-semibold text-slate-900">{score}</p>
+          <div className="flex items-center">
+            <p className="text-3xl font-semibold text-slate-900">{score}</p>
+            {analysis && (
+              <CareerScoreInfoModal
+                score={score}
+                analysis={analysis}
+                realAtsScore={realAtsScore}
+              />
+            )}
+          </div>
         )}
       </div>
 
@@ -97,7 +94,7 @@ export default function CareerScoreCard({
         </p>
       )}
 
-      <div className="mt-4 flex items-center gap-3">
+      <div className="mt-4">
         <button
           onClick={handleCalculate}
           disabled={loading}
@@ -109,62 +106,7 @@ export default function CareerScoreCard({
               ? "Recalcular"
               : "Calcular Career Score"}
         </button>
-        {analysis && (
-          <button
-            onClick={() => setExpanded((v) => !v)}
-            className="text-sm font-medium text-slate-500 underline hover:text-slate-800"
-          >
-            {expanded ? "Ocultar detalle" : "Ver detalle"}
-          </button>
-        )}
       </div>
-
-      {expanded && analysis && (
-        <div className="mt-4 flex flex-col gap-4 border-t border-slate-100 pt-4">
-          <p className="text-sm text-slate-600">{analysis.explicacion}</p>
-
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-            {(Object.keys(DIMENSION_LABELS) as (keyof Desglose)[]).map(
-              (key) => (
-                <div key={key} className="text-xs">
-                  <span className="text-slate-500">
-                    {DIMENSION_LABELS[key]}:
-                  </span>{" "}
-                  <span className="font-medium text-slate-800">
-                    {analysis.desglose[key] ?? "Sin datos"}
-                  </span>
-                </div>
-              )
-            )}
-          </div>
-
-          {analysis.fortalezas?.length > 0 && (
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Fortalezas
-              </h4>
-              <ul className="mt-1 list-disc pl-5 text-sm text-slate-700">
-                {analysis.fortalezas.map((f, i) => (
-                  <li key={i}>{f}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {analysis.oportunidades_mejora?.length > 0 && (
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Oportunidades de mejora
-              </h4>
-              <ul className="mt-1 list-disc pl-5 text-sm text-slate-700">
-                {analysis.oportunidades_mejora.map((o, i) => (
-                  <li key={i}>{o}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
