@@ -49,10 +49,17 @@ export default function HeadhunterRequestPage() {
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
       }}
     >
-      <div className="mx-auto max-w-md">
+        <div className="mx-auto max-w-md">
         <Link
           href="/"
-          className="text-xs font-semibold uppercase tracking-widest text-black"
+          className="text-sm text-[#666] hover:text-black"
+        >
+          Volver
+        </Link>
+
+        <Link
+          href="/"
+          className="mt-6 block text-xs font-semibold uppercase tracking-widest text-black"
         >
           EXECUTIVE TRANSITION
         </Link>
