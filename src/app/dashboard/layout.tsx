@@ -25,6 +25,12 @@ export default async function DashboardLayout({
 
   const displayName = profile?.full_name || user.email || "Usuario";
   const role = profile?.role ?? "usuario";
+  // Solo existe si el usuario entró con Google OAuth; para cuentas
+  // creadas con correo/contraseña, queda null y se usa la inicial.
+  const avatarUrl =
+    (user.user_metadata?.avatar_url as string | undefined) ??
+    (user.user_metadata?.picture as string | undefined) ??
+    null;
 
   // Badges tipo "hay algo nuevo" — solo lo que representa información
   // pendiente real, no un contador de todo lo que existe.
@@ -177,6 +183,7 @@ export default async function DashboardLayout({
       careerScore={profile?.career_score ?? null}
       badges={badges}
       displayName={displayName}
+      avatarUrl={avatarUrl}
       roleLabel={ROLE_LABELS[role] ?? role}
       today={today}
     >

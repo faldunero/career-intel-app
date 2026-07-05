@@ -40,10 +40,17 @@ export function SidebarToggle({
   );
 }
 
-export function UserMenu({ displayName }: { displayName: string }) {
+export function UserMenu({
+  displayName,
+  avatarUrl,
+}: {
+  displayName: string;
+  avatarUrl?: string | null;
+}) {
   const router = useRouter();
   const supabase = createClient();
   const [open, setOpen] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,14 +70,25 @@ export function UserMenu({ displayName }: { displayName: string }) {
   }
 
   const initial = displayName.trim().charAt(0).toUpperCase() || "U";
+  const showImage = avatarUrl && !imgFailed;
 
   return (
     <div ref={containerRef} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white"
+        className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-slate-900 text-sm font-semibold text-white"
       >
-        {initial}
+        {showImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatarUrl}
+            alt={displayName}
+            className="h-full w-full object-cover"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          initial
+        )}
       </button>
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">

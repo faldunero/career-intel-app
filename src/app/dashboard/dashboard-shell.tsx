@@ -14,6 +14,7 @@ export default function DashboardShell({
   careerScore,
   badges,
   displayName,
+  avatarUrl,
   roleLabel,
   today,
   children,
@@ -22,6 +23,7 @@ export default function DashboardShell({
   careerScore: number | null;
   badges: Record<string, number>;
   displayName: string;
+  avatarUrl?: string | null;
   roleLabel: string;
   today: string;
   children: React.ReactNode;
@@ -56,7 +58,7 @@ export default function DashboardShell({
                 {roleLabel} · {today}
               </p>
             </div>
-            <UserMenu displayName={displayName} />
+            <UserMenu displayName={displayName} avatarUrl={avatarUrl} />
           </div>
         </div>
         <main className="flex-1 px-6 py-10">{children}</main>
