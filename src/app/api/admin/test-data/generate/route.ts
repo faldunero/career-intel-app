@@ -44,6 +44,11 @@ export async function POST() {
     events: 0,
     errors: [] as string[],
   };
+  const accounts = {
+    coaches: [] as { email: string; full_name: string }[],
+    users: [] as { email: string; full_name: string }[],
+    headhunters: [] as { email: string; full_name: string }[],
+  };
 
   // ---------- Coaches ----------
   const coachIds: string[] = [];
@@ -65,6 +70,7 @@ export async function POST() {
       .eq("id", data.user.id);
     coachIds.push(data.user.id);
     created.coaches++;
+    accounts.coaches.push({ email, full_name: `TEST Coach ${i}` });
   }
 
   // ---------- Usuarios ----------
@@ -107,6 +113,7 @@ export async function POST() {
 
     userIds.push(data.user.id);
     created.users++;
+    accounts.users.push({ email, full_name: `TEST Usuario ${i}` });
 
     // La mayoría queda asignada a algún coach de prueba; algunos
     // quedan sin asignar para probar el badge de "sin coach".
@@ -213,7 +220,14 @@ export async function POST() {
     });
 
     created.headhunters++;
+    accounts.headhunters.push({ email, full_name: `TEST Headhunter ${i}` });
   }
 
-  return NextResponse.json({ ok: true, tag, password: TEST_PASSWORD, ...created });
+  return NextResponse.json({
+    ok: true,
+    tag,
+    password: TEST_PASSWORD,
+    accounts,
+    ...created,
+  });
 }

@@ -14,6 +14,12 @@ export default function GeneratorPanel({
   const [confirmText, setConfirmText] = useState("");
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [password, setPassword] = useState<string | null>(null);
+  const [accounts, setAccounts] = useState<{
+    coaches: { email: string; full_name: string }[];
+    users: { email: string; full_name: string }[];
+    headhunters: { email: string; full_name: string }[];
+  } | null>(null);
 
   const total = counts.coaches + counts.users + counts.headhunters;
 
@@ -30,8 +36,10 @@ export default function GeneratorPanel({
       return;
     }
     setResult(
-      `Creados: ${data.coaches} coaches, ${data.users} usuarios, ${data.headhunters} headhunters, ${data.opportunities} oportunidades, ${data.tasks} tareas, ${data.events} eventos. Contraseña para todos: ${data.password}`
+      `Creados: ${data.coaches} coaches, ${data.users} usuarios, ${data.headhunters} headhunters, ${data.opportunities} oportunidades, ${data.tasks} tareas, ${data.events} eventos.`
     );
+    setPassword(data.password);
+    setAccounts(data.accounts);
     router.refresh();
   }
 
@@ -53,6 +61,8 @@ export default function GeneratorPanel({
     }
     setResult(`Se eliminaron ${data.deleted} cuentas de prueba.`);
     setConfirmText("");
+    setAccounts(null);
+    setPassword(null);
     router.refresh();
   }
 
@@ -120,6 +130,72 @@ export default function GeneratorPanel({
       {error && (
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>
       )}
+
+      {accounts && password && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-medium text-slate-900">
+            Cómo entrar a estas cuentas
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Contraseña para TODAS las cuentas de este lote:{" "}
+            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">
+              {password}
+            </code>
+            . La primera vez que entres a cada una vas a tener que
+            configurar 2FA (es el mismo flujo obligatorio de siempre,
+            necesitas una app como Google Authenticator).
+          </p>
+
+          <AccountGroup title="Coaches" items={accounts.coaches} />
+          <AccountGroup title="Usuarios" items={accounts.users} />
+          <AccountGroup title="Headhunters" items={accounts.headhunters} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AccountGroup({
+  title,
+  items,
+}: {
+  title: string;
+  items: { email: string; full_name: string }[];
+}) {
+  const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
+
+  if (items.length === 0) return null;
+
+  function handleCopy(email: string) {
+    navigator.clipboard.writeText(email);
+    setCopiedEmail(email);
+    setTimeout(() => setCopiedEmail(null), 1500);
+  }
+
+  return (
+    <div className="mt-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {title} ({items.length})
+      </h3>
+      <div className="mt-2 flex flex-col gap-1">
+        {items.map((a) => (
+          <div
+            key={a.email}
+            className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-sm"
+          >
+            <div>
+              <span className="text-slate-900">{a.full_name}</span>{" "}
+              <span className="text-slate-500">{a.email}</span>
+            </div>
+            <button
+              onClick={() => handleCopy(a.email)}
+              className="text-xs font-medium text-slate-600 hover:text-slate-900"
+            >
+              {copiedEmail === a.email ? "¡Copiado!" : "Copiar correo"}
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
