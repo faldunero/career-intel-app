@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireHeadhunter } from "@/lib/require-headhunter";
 import ViewCvButton from "./view-cv-button";
+import CvPdfViewer from "./cv-pdf-viewer";
 
 export default async function HeadhunterCandidatePage({
   params,
@@ -28,7 +29,7 @@ export default async function HeadhunterCandidatePage({
 
   const { data: cv } = await supabase
     .from("cvs")
-    .select("file_name, storage_path, ats_score")
+    .select("id, file_name, storage_path, ats_score")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -94,7 +95,10 @@ export default async function HeadhunterCandidatePage({
                 </p>
               )}
               <div className="mt-3">
-                <ViewCvButton storagePath={cv.storage_path} />
+                <CvPdfViewer storagePath={cv.storage_path} fileName={cv.file_name} />
+              </div>
+              <div className="mt-4">
+                <ViewCvButton cvId={cv.id} />
               </div>
             </>
           ) : (
