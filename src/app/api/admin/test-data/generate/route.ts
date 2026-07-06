@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin-guard";
+import { makeSimplePdf } from "@/lib/simple-pdf";
 
 export const runtime = "nodejs";
 
@@ -39,6 +40,7 @@ export async function POST() {
     coaches: 0,
     users: 0,
     headhunters: 0,
+    cvs: 0,
     opportunities: 0,
     tasks: 0,
     events: 0,
@@ -114,6 +116,67 @@ export async function POST() {
     userIds.push(data.user.id);
     created.users++;
     accounts.users.push({ email, full_name: `TEST Usuario ${i}` });
+
+    // ---- CV real (archivo + análisis simulado, sin llamar a la IA) ----
+    const cvLines = [
+      `${`TEST Usuario ${i}`.toUpperCase()}`,
+      `${position} | ${seniority} | ${industry}`,
+      `Santiago, Chile`,
+      "",
+      "RESUMEN EJECUTIVO",
+      `Profesional con experiencia en ${industry.toLowerCase()}, especializado`,
+      `en ${position.toLowerCase()}. Historial comprobado liderando equipos`,
+      "y proyectos de alto impacto en organizaciones de distintos tamaños.",
+      "",
+      "EXPERIENCIA",
+      `${position} — Empresa ${pick(COMPANIES, i)} (2021 - Actualidad)`,
+      "- Liderazgo de equipos multidisciplinarios",
+      "- Gestión de presupuestos y KPIs de área",
+      `${pick(POSITIONS, i + 3)} — Empresa ${pick(COMPANIES, i + 1)} (2017 - 2021)`,
+      "- Implementación de procesos de mejora continua",
+      "",
+      "EDUCACIÓN",
+      "Ingeniería Comercial, Universidad de Chile",
+      "",
+      "IDIOMAS",
+      "Español (nativo), Inglés (avanzado)",
+    ];
+
+    const pdfBuffer = makeSimplePdf(cvLines);
+    const storagePath = `${data.user.id}/${Date.now()}-test-cv.pdf`;
+
+    const { error: uploadError } = await admin.storage
+      .from("cvs")
+      .upload(storagePath, pdfBuffer, { contentType: "application/pdf" });
+
+    if (uploadError) {
+      created.errors.push(`CV usuario ${i}: ${uploadError.message}`);
+    } else {
+      const atsScore = 55 + ((i * 5) % 35);
+      await admin.from("cvs").insert({
+        user_id: data.user.id,
+        file_name: `CV_TEST_Usuario_${i}.pdf`,
+        storage_path: storagePath,
+        mime_type: "application/pdf",
+        extraction_status: "done",
+        extracted_text: cvLines.join("\n"),
+        ats_score: atsScore,
+        ats_analysis: {
+          score_explicado:
+            "CV de prueba generado automáticamente — este análisis es simulado, no vino de la IA.",
+          fortalezas: [
+            "Buen uso de verbos de acción en la experiencia laboral",
+            "Estructura clara y ordenada",
+          ],
+          palabras_clave_faltantes: ["Certificaciones", "Metodologías ágiles"],
+          que_eliminar: [],
+          que_agregar: ["Logros cuantificados con métricas concretas"],
+          que_reescribir: [],
+          que_cuantificar: ["Resultados de la experiencia más reciente"],
+        },
+      });
+      created.cvs++;
+    }
 
     // La mayoría queda asignada a algún coach de prueba; algunos
     // quedan sin asignar para probar el badge de "sin coach".

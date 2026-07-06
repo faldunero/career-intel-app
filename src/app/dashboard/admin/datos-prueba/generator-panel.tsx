@@ -36,7 +36,7 @@ export default function GeneratorPanel({
       return;
     }
     setResult(
-      `Creados: ${data.coaches} coaches, ${data.users} usuarios, ${data.headhunters} headhunters, ${data.opportunities} oportunidades, ${data.tasks} tareas, ${data.events} eventos.`
+      `Creados: ${data.coaches} coaches, ${data.users} usuarios, ${data.headhunters} headhunters, ${data.cvs} CVs, ${data.opportunities} oportunidades, ${data.tasks} tareas, ${data.events} eventos.`
     );
     setPassword(data.password);
     setAccounts(data.accounts);
@@ -76,10 +76,12 @@ export default function GeneratorPanel({
           Crea 5 coaches, 15 usuarios (con rubro/cargo variados, algunos
           asignados a esos coaches y otros sin asignar, algunos
           visibles para headhunters) y 3 headhunters con acceso ya
-          aprobado. También genera oportunidades (CRM), tareas y
-          eventos de calendario de ejemplo para esos usuarios, con
-          algún comentario de coach ya escrito. Todos quedan marcados
-          como &quot;TEST&quot; en las listas de Admin, con el prefijo
+          aprobado. Cada usuario recibe un CV real (PDF generado
+          automáticamente, con análisis simulado — no llama a la IA).
+          También genera oportunidades (CRM), tareas y eventos de
+          calendario de ejemplo, con algún comentario de coach ya
+          escrito. Todos quedan marcados como &quot;TEST&quot; en las
+          listas de Admin, con el prefijo
           <code className="mx-1 rounded bg-slate-100 px-1">test.</code>
           en su correo.
         </p>
