@@ -23,8 +23,31 @@ export default async function AdminHeadhuntersPage() {
     .order("created_at", { ascending: false });
 
   const all = requests ?? [];
-  const pendientes = all.filter((r) => r.status === "pendiente");
-  const revisadas = all.filter((r) => r.status !== "pendiente");
+
+  const linkedIds = all
+    .map((r) => r.headhunter_user_id)
+    .filter((id): id is string => Boolean(id));
+
+  const { data: linkedProfiles } = linkedIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, headhunter_access_expires_at")
+        .in("id", linkedIds)
+    : { data: [] as { id: string; headhunter_access_expires_at: string | null }[] };
+
+  const expiryById = new Map(
+    (linkedProfiles ?? []).map((p) => [p.id, p.headhunter_access_expires_at])
+  );
+
+  const requestsWithExpiry = all.map((r) => ({
+    ...r,
+    current_expiry: r.headhunter_user_id
+      ? expiryById.get(r.headhunter_user_id) ?? null
+      : null,
+  }));
+
+  const pendientes = requestsWithExpiry.filter((r) => r.status === "pendiente");
+  const revisadas = requestsWithExpiry.filter((r) => r.status !== "pendiente");
 
   return (
     <div className="mx-auto max-w-2xl">
