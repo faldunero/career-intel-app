@@ -10,9 +10,11 @@ import { createClient } from "@/lib/supabase/client";
 export default function CvPdfViewer({
   storagePath,
   fileName,
+  bucket = "cvs",
 }: {
   storagePath: string;
   fileName: string;
+  bucket?: string;
 }) {
   const supabase = createClient();
   const [url, setUrl] = useState<string | null>(null);
@@ -22,7 +24,7 @@ export default function CvPdfViewer({
     let active = true;
     async function load() {
       const { data, error } = await supabase.storage
-        .from("cvs")
+        .from(bucket)
         .createSignedUrl(storagePath, 300);
       if (!active) return;
       if (error || !data) {
@@ -35,7 +37,7 @@ export default function CvPdfViewer({
     return () => {
       active = false;
     };
-  }, [storagePath, supabase]);
+  }, [storagePath, bucket, supabase]);
 
   const isPdf = fileName.toLowerCase().endsWith(".pdf");
 

@@ -3,14 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import CvPdfViewer from "@/components/cv/pdf-viewer";
 
 export default function LinkedinActions({
   linkedinId,
   storagePath,
+  fileName,
   extractedText,
 }: {
   linkedinId: string;
   storagePath: string;
+  fileName: string;
   extractedText: string | null;
 }) {
   const router = useRouter();
@@ -70,7 +73,7 @@ export default function LinkedinActions({
             disabled={saving}
             className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
           >
-            {saving ? "Guardando..." : "Guardar cambios"}
+            {saving ? "Guardando…" : "Guardar cambios"}
           </button>
           <button
             onClick={() => {
@@ -88,22 +91,30 @@ export default function LinkedinActions({
   }
 
   return (
-    <div className="mt-3 flex flex-col gap-2">
-      <div className="flex flex-wrap gap-3">
+    <div className="mt-3 flex flex-col gap-3">
+      <CvPdfViewer
+        storagePath={storagePath}
+        fileName={fileName}
+        bucket="linkedin"
+      />
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-slate-500">
         <button
           onClick={handleViewOriginal}
           disabled={viewLoading}
-          className="text-xs font-medium text-slate-600 underline hover:text-slate-900 disabled:opacity-50"
+          className="hover:text-slate-900 disabled:opacity-50"
         >
-          {viewLoading ? "Abriendo..." : "Ver PDF original"}
+          {viewLoading ? "Abriendo…" : "Ver PDF original"}
         </button>
         {extractedText && (
-          <button
-            onClick={() => setEditing(true)}
-            className="text-xs font-medium text-slate-600 underline hover:text-slate-900"
-          >
-            Editar texto
-          </button>
+          <>
+            <span className="text-slate-200">·</span>
+            <button
+              onClick={() => setEditing(true)}
+              className="hover:text-slate-900"
+            >
+              Editar texto
+            </button>
+          </>
         )}
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}

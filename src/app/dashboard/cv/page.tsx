@@ -3,18 +3,7 @@ import CvUploadForm from "./cv-upload-form";
 import CvAnalysis from "./cv-analysis";
 import RetryExtraction from "./retry-extraction";
 import CvActions from "./cv-actions";
-
-const STATUS_LABEL: Record<string, string> = {
-  done: "Texto leído",
-  error: "Error",
-  pending: "Pendiente",
-};
-
-const STATUS_CLASS: Record<string, string> = {
-  done: "bg-green-100 text-green-700",
-  error: "bg-red-100 text-red-700",
-  pending: "bg-amber-100 text-amber-700",
-};
+import DocumentStatusBadge from "@/components/cv/document-status-badge";
 
 export default async function CvPage() {
   const { supabase, user } = await requireUsuario();
@@ -98,14 +87,7 @@ export default async function CvPage() {
                     })}
                   </p>
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
-                    STATUS_CLASS[cv.extraction_status] ??
-                    "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {STATUS_LABEL[cv.extraction_status] ?? cv.extraction_status}
-                </span>
+                <DocumentStatusBadge status={cv.extraction_status} />
               </div>
 
               {cv.extraction_status === "error" && (
