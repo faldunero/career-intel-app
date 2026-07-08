@@ -38,9 +38,9 @@ export default function RetryExtraction({ cvId }: { cvId: string }) {
       <button
         onClick={handleRetry}
         disabled={loading}
-        className="self-start text-xs font-medium text-slate-600 underline hover:text-slate-900 disabled:opacity-50"
+        className="self-start text-xs font-medium text-slate-600 hover:text-slate-900 disabled:opacity-50"
       >
-        {loading ? "Reintentando..." : "Reintentar extracción"}
+        {loading ? "Reintentando…" : "Reintentar extracción"}
       </button>
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>

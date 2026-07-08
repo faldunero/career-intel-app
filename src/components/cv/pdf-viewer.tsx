@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+// Visor compartido para las 3 vistas de CV (usuario, coach, headhunter).
+// Antes existían 3 copias casi idénticas de este componente; se
+// consolidan acá para que un cambio de estilo o de comportamiento no
+// tenga que replicarse a mano en cada rol.
 export default function CvPdfViewer({
   storagePath,
   fileName,
@@ -36,19 +40,31 @@ export default function CvPdfViewer({
   const isPdf = fileName.toLowerCase().endsWith(".pdf");
 
   if (error) {
-    return <p className="text-xs text-red-600">{error}</p>;
+    return (
+      <div className="flex h-96 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
+        <p className="text-sm text-slate-400">{error}</p>
+      </div>
+    );
   }
 
   if (!url) {
     return (
-      <div className="flex h-96 items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
-        <p className="text-sm text-slate-400">Cargando vista previa...</p>
+      <div className="flex h-96 animate-pulse items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
+        <p className="text-sm text-slate-400">Cargando vista previa…</p>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="overflow-hidden rounded-lg border border-slate-200">
+      <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-2">
+        <p className="truncate text-xs font-medium text-slate-600">
+          {fileName}
+        </p>
+        <span className="shrink-0 text-[11px] uppercase tracking-wide text-slate-400">
+          {isPdf ? "PDF" : "Word"}
+        </span>
+      </div>
       <iframe
         src={
           isPdf
@@ -56,12 +72,12 @@ export default function CvPdfViewer({
             : `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`
         }
         title={fileName}
-        className="h-[800px] w-full rounded-lg border border-slate-200"
+        className="h-[720px] w-full bg-white"
       />
       {!isPdf && (
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="border-t border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-400">
           Vista previa de Word vía Microsoft Office Online. Si no carga,
-          usa el botón &quot;Ver archivo&quot; para descargarlo directo.
+          usa &quot;Ver archivo original&quot; para descargarlo directo.
         </p>
       )}
     </div>

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import ScoreRing from "@/components/cv/score-ring";
+import AnalysisSection from "@/components/cv/analysis-section";
+import CommentList from "@/components/cv/comment-list";
 
 type AtsAnalysis = {
   ats_score: number;
@@ -20,87 +23,14 @@ type Comment = {
   comment: string;
 };
 
-const CHIP_SECTIONS = new Set(["palabras_clave_faltantes"]);
-
-function ScoreBadge({ score }: { score: number }) {
-  const color =
-    score >= 75
-      ? "bg-green-100 text-green-700"
-      : score >= 50
-        ? "bg-amber-100 text-amber-700"
-        : "bg-red-100 text-red-700";
-  return (
-    <span className={`rounded-full px-3 py-1 text-sm font-semibold ${color}`}>
-      ATS Score: {score}/100
-    </span>
-  );
-}
-
-function CommentBubbles({ comments }: { comments: Comment[] }) {
-  if (comments.length === 0) return null;
-  return (
-    <div className="mt-2 flex flex-col gap-1.5">
-      {comments.map((c) => (
-        <p
-          key={c.id}
-          className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-slate-700"
-        >
-          💬 <span className="font-medium">Tu coach:</span> {c.comment}
-        </p>
-      ))}
-    </div>
-  );
-}
-
-function KeywordChips({ items }: { items: string[] }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {items.map((item, i) => (
-        <span
-          key={i}
-          className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"
-        >
-          {item}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function SectionBlock({
-  title,
-  items,
-  section,
-  commentsFor,
-}: {
-  title: string;
-  items?: string[];
-  section: string;
-  commentsFor: (section: string) => Comment[];
-}) {
-  if (!items || items.length === 0) return null;
-  return (
-    <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {title}
-      </h4>
-      <div className="mt-2">
-        {CHIP_SECTIONS.has(section) ? (
-          <KeywordChips items={items} />
-        ) : (
-          <ul className="flex flex-col gap-2 pl-5 text-sm text-slate-700">
-            {items.map((item, i) => (
-              <li key={i} className="list-disc">
-                {item}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <CommentBubbles comments={commentsFor(section)} />
-    </div>
-  );
-}
+const SECTION_ORDER: Array<{ key: keyof AtsAnalysis; title: string }> = [
+  { key: "fortalezas", title: "Fortalezas" },
+  { key: "palabras_clave_faltantes", title: "Palabras clave faltantes" },
+  { key: "que_eliminar", title: "Qué eliminar" },
+  { key: "que_agregar", title: "Qué agregar" },
+  { key: "que_reescribir", title: "Qué reescribir" },
+  { key: "que_cuantificar", title: "Qué cuantificar" },
+];
 
 export default function CvAnalysis({
   cvId,
@@ -159,14 +89,14 @@ export default function CvAnalysis({
   if (!canAnalyze) return null;
 
   return (
-    <div className="mt-3 border-t border-slate-100 pt-3">
+    <div className="mt-4 border-t border-slate-100 pt-4">
       {!analysis && (
         <button
           onClick={handleAnalyze}
           disabled={loading}
           className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
         >
-          {loading ? "Analizando con IA..." : "Analizar ATS con IA"}
+          {loading ? "Analizando con IA…" : "Analizar ATS con IA"}
         </button>
       )}
 
@@ -179,62 +109,38 @@ export default function CvAnalysis({
       {analysis && score !== null && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <ScoreBadge score={score} />
+            <ScoreRing score={score} label="ATS Score" size="sm" />
             <button
               onClick={handleAnalyze}
               disabled={loading}
-              className="text-xs font-medium text-slate-500 underline hover:text-slate-800 disabled:opacity-50"
+              className="text-xs font-medium text-slate-500 hover:text-slate-800 disabled:opacity-50"
             >
-              {loading ? "Re-analizando..." : "Re-analizar"}
+              {loading ? "Re-analizando…" : "Re-analizar"}
             </button>
           </div>
           <p className="text-sm text-slate-600">{analysis.score_explicado}</p>
 
           {generalComments.length > 0 && (
-            <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <h4 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 Comentario general de tu coach
               </h4>
-              <CommentBubbles comments={generalComments} />
+              <CommentList comments={generalComments} />
             </div>
           )}
 
-          <SectionBlock
-            title="Fortalezas"
-            items={analysis.fortalezas}
-            section="fortalezas"
-            commentsFor={commentsFor}
-          />
-          <SectionBlock
-            title="Palabras clave faltantes"
-            items={analysis.palabras_clave_faltantes}
-            section="palabras_clave_faltantes"
-            commentsFor={commentsFor}
-          />
-          <SectionBlock
-            title="Qué eliminar"
-            items={analysis.que_eliminar}
-            section="que_eliminar"
-            commentsFor={commentsFor}
-          />
-          <SectionBlock
-            title="Qué agregar"
-            items={analysis.que_agregar}
-            section="que_agregar"
-            commentsFor={commentsFor}
-          />
-          <SectionBlock
-            title="Qué reescribir"
-            items={analysis.que_reescribir}
-            section="que_reescribir"
-            commentsFor={commentsFor}
-          />
-          <SectionBlock
-            title="Qué cuantificar"
-            items={analysis.que_cuantificar}
-            section="que_cuantificar"
-            commentsFor={commentsFor}
-          />
+          <div className="divide-y divide-slate-100">
+            {SECTION_ORDER.map(({ key, title }) => (
+              <AnalysisSection
+                key={key}
+                title={title}
+                section={key}
+                items={analysis[key] as string[]}
+              >
+                <CommentList comments={commentsFor(key)} />
+              </AnalysisSection>
+            ))}
+          </div>
         </div>
       )}
     </div>

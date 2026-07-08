@@ -4,6 +4,18 @@ import CvAnalysis from "./cv-analysis";
 import RetryExtraction from "./retry-extraction";
 import CvActions from "./cv-actions";
 
+const STATUS_LABEL: Record<string, string> = {
+  done: "Texto leído",
+  error: "Error",
+  pending: "Pendiente",
+};
+
+const STATUS_CLASS: Record<string, string> = {
+  done: "bg-green-100 text-green-700",
+  error: "bg-red-100 text-red-700",
+  pending: "bg-amber-100 text-amber-700",
+};
+
 export default async function CvPage() {
   const { supabase, user } = await requireUsuario();
 
@@ -63,48 +75,48 @@ export default async function CvPage() {
       </div>
 
       {cvs && cvs.length > 0 && (
-        <div className="mt-6 flex flex-col gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <div className="mt-6 flex flex-col gap-4">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             CVs subidos
           </h2>
           {cvs.map((cv) => (
             <div
               key={cv.id}
-              className="rounded-xl border border-slate-200 bg-white p-4"
+              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
             >
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-900">
-                  {cv.file_name}
-                </p>
+                <div>
+                  <p className="text-sm font-medium text-slate-900">
+                    {cv.file_name}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-400">
+                    Subido el{" "}
+                    {new Date(cv.created_at).toLocaleDateString("es-CL", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    cv.extraction_status === "done"
-                      ? "bg-green-100 text-green-700"
-                      : cv.extraction_status === "error"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-amber-100 text-amber-700"
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+                    STATUS_CLASS[cv.extraction_status] ??
+                    "bg-slate-100 text-slate-600"
                   }`}
                 >
-                  {cv.extraction_status === "done"
-                    ? "Texto leído"
-                    : cv.extraction_status === "error"
-                      ? "Error"
-                      : "Pendiente"}
+                  {STATUS_LABEL[cv.extraction_status] ?? cv.extraction_status}
                 </span>
               </div>
+
               {cv.extraction_status === "error" && (
                 <>
-                  <p className="mt-2 text-xs text-red-600">
+                  <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
                     {cv.extraction_error}
                   </p>
                   <RetryExtraction cvId={cv.id} />
                 </>
               )}
-              {cv.extraction_status === "done" && cv.extracted_text && (
-                <p className="mt-2 line-clamp-3 text-xs text-slate-500">
-                  {cv.extracted_text.slice(0, 220)}...
-                </p>
-              )}
+
               <CvActions
                 cvId={cv.id}
                 fileName={cv.file_name}

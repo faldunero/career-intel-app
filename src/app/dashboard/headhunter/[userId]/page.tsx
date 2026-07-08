@@ -2,7 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireHeadhunter } from "@/lib/require-headhunter";
 import ViewCvButton from "./view-cv-button";
-import CvPdfViewer from "./cv-pdf-viewer";
+import CvPdfViewer from "@/components/cv/pdf-viewer";
+import ScoreRing from "@/components/cv/score-ring";
+
+const FIELDS: Array<{
+  key: "industry" | "seniority" | "location" | "languages" | "certifications";
+  label: string;
+}> = [
+  { key: "industry", label: "Rubro" },
+  { key: "seniority", label: "Seniority" },
+  { key: "location", label: "Ubicación" },
+  { key: "languages", label: "Idiomas" },
+  { key: "certifications", label: "Certificaciones" },
+];
 
 export default async function HeadhunterCandidatePage({
   params,
@@ -35,67 +47,66 @@ export default async function HeadhunterCandidatePage({
     .limit(1)
     .maybeSingle();
 
+  const fieldValues: Record<(typeof FIELDS)[number]["key"], string> = {
+    industry: candidate.industry ?? "—",
+    seniority: candidate.seniority ?? "—",
+    location:
+      [candidate.city, candidate.country].filter(Boolean).join(", ") || "—",
+    languages: candidate.languages ?? "—",
+    certifications: candidate.certifications ?? "—",
+  };
+
   return (
     <div className="mx-auto max-w-2xl">
       <Link
         href="/dashboard/headhunter"
         className="text-sm text-slate-500 hover:text-slate-800"
       >
-        Volver a la búsqueda
+        ← Volver a la búsqueda
       </Link>
 
-      <h1 className="mt-3 text-2xl font-semibold text-slate-900">
-        {candidate.full_name ?? "Candidato"}
-      </h1>
-      <p className="text-sm text-slate-500">
-        {candidate.current_position ?? candidate.target_role ?? "—"}
-      </p>
+      <div className="mt-3 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">
+            {candidate.full_name ?? "Candidato"}
+          </h1>
+          <p className="text-sm text-slate-500">
+            {candidate.current_position ?? candidate.target_role ?? "—"}
+          </p>
+        </div>
+        {candidate.career_score !== null && (
+          <ScoreRing score={candidate.career_score} label="Career Score" />
+        )}
+      </div>
 
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
-          <div>
-            <p className="text-slate-400">Rubro</p>
-            <p className="text-slate-900">{candidate.industry ?? "—"}</p>
-          </div>
-          <div>
-            <p className="text-slate-400">Seniority</p>
-            <p className="text-slate-900">{candidate.seniority ?? "—"}</p>
-          </div>
-          <div>
-            <p className="text-slate-400">Ubicación</p>
-            <p className="text-slate-900">
-              {[candidate.city, candidate.country].filter(Boolean).join(", ") || "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-slate-400">Idiomas</p>
-            <p className="text-slate-900">{candidate.languages ?? "—"}</p>
-          </div>
-          <div>
-            <p className="text-slate-400">Certificaciones</p>
-            <p className="text-slate-900">{candidate.certifications ?? "—"}</p>
-          </div>
-          {candidate.career_score !== null && (
-            <div>
-              <p className="text-slate-400">Career Score</p>
-              <p className="text-slate-900">{candidate.career_score}/100</p>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm sm:grid-cols-3">
+          {FIELDS.map(({ key, label }) => (
+            <div key={key}>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                {label}
+              </p>
+              <p className="mt-0.5 text-slate-900">{fieldValues[key]}</p>
             </div>
-          )}
+          ))}
         </div>
 
         <div className="mt-6 border-t border-slate-100 pt-6">
           {cv ? (
             <>
-              <p className="text-sm font-medium text-slate-900">
-                {cv.file_name}
-              </p>
-              {cv.ats_score !== null && (
-                <p className="mt-1 text-xs text-slate-500">
-                  ATS Score: {cv.ats_score}/100
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-slate-900">
+                  {cv.file_name}
                 </p>
-              )}
+                {cv.ats_score !== null && (
+                  <ScoreRing score={cv.ats_score} label="ATS Score" size="sm" />
+                )}
+              </div>
               <div className="mt-3">
-                <CvPdfViewer storagePath={cv.storage_path} fileName={cv.file_name} />
+                <CvPdfViewer
+                  storagePath={cv.storage_path}
+                  fileName={cv.file_name}
+                />
               </div>
               <div className="mt-4">
                 <ViewCvButton cvId={cv.id} />

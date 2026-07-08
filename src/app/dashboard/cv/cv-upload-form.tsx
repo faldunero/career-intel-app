@@ -115,19 +115,33 @@ export default function CvUploadForm({ userId }: { userId: string }) {
     }
   }
 
+  const isBusy = status === "uploading" || status === "extracting";
+
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">
           Selecciona tu CV (.pdf o .docx, máx. {MAX_SIZE_MB}MB)
         </label>
         <input
           type="file"
           accept=".pdf,.docx"
           onChange={handleFileChange}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+          disabled={isBusy}
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 outline-none file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white disabled:opacity-50"
         />
       </div>
+
+      {isBusy && (
+        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-slate-400" />
+          <p className="text-sm text-slate-600">
+            {status === "uploading"
+              ? "Subiendo el archivo…"
+              : "Leyendo el contenido del CV…"}
+          </p>
+        </div>
+      )}
 
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
@@ -136,13 +150,15 @@ export default function CvUploadForm({ userId }: { userId: string }) {
       )}
 
       {status === "done" && preview && (
-        <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
-          <p className="font-medium">
-            ✅ CV subido y leído correctamente. Vista previa del texto
-            extraído:
+        <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-3">
+          <p className="text-sm font-medium text-green-800">
+            CV subido y leído correctamente
           </p>
-          <p className="mt-2 whitespace-pre-line text-xs text-green-700">
-            {preview}...
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-green-700">
+            Vista previa del texto extraído
+          </p>
+          <p className="mt-1 whitespace-pre-line text-xs text-green-700/90">
+            {preview}…
           </p>
         </div>
       )}
@@ -150,13 +166,13 @@ export default function CvUploadForm({ userId }: { userId: string }) {
       <button
         type="button"
         onClick={handleUpload}
-        disabled={!file || status === "uploading" || status === "extracting"}
+        disabled={!file || isBusy}
         className="self-start rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
       >
         {status === "uploading"
-          ? "Subiendo..."
+          ? "Subiendo…"
           : status === "extracting"
-            ? "Leyendo CV..."
+            ? "Leyendo CV…"
             : "Subir CV"}
       </button>
     </div>
