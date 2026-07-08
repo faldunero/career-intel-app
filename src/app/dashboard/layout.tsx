@@ -94,6 +94,17 @@ export default async function DashboardLayout({
       .select("id", { count: "exact", head: true })
       .eq("seen_by_user", false);
 
+    const { count: pendingPsychTools } = await supabase
+      .from("psych_assignments")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("status", "asignado");
+
+    const { count: unseenPsychComments } = await supabase
+      .from("psych_comments")
+      .select("id", { count: "exact", head: true })
+      .eq("seen_by_user", false);
+
     if (pendingTasks) badges["/dashboard/tasks"] = pendingTasks;
     if (newInterviews) badges["/dashboard/interview"] = newInterviews;
     if (unseenCvComments) badges["/dashboard/cv"] = unseenCvComments;
@@ -102,6 +113,8 @@ export default async function DashboardLayout({
     if (unseenOppComments) badges["/dashboard/opportunities"] = unseenOppComments;
     if (unseenNotes) badges["/dashboard/notes"] = unseenNotes;
     if (unseenCalendarComments) badges["/dashboard/calendar"] = unseenCalendarComments;
+    const pendingPsychSignal = (pendingPsychTools ?? 0) + (unseenPsychComments ?? 0);
+    if (pendingPsychSignal) badges["/dashboard/psicolaboral"] = pendingPsychSignal;
   }
 
   if (role === "coach") {

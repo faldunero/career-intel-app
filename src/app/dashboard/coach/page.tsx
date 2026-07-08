@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import AssignedUsersTable from "./assigned-users-table";
+import { TOOLS, type ToolKey } from "@/lib/psych-tools";
 
 const SESSION_TYPE_LABELS: Record<string, string> = {
   recruiter: "Recruiter",
@@ -13,7 +14,7 @@ const SESSION_TYPE_LABELS: Record<string, string> = {
 };
 
 type PendingItem = {
-  type: "interview" | "task" | "calendar" | "cv" | "linkedin" | "matching" | "opportunity";
+  type: "interview" | "task" | "calendar" | "cv" | "linkedin" | "matching" | "opportunity" | "psych";
   userId: string;
   userName: string;
   title: string;
@@ -32,6 +33,7 @@ const TYPE_META: Record<
   linkedin: { label: "LinkedIn analizado sin revisar", icon: "💼", verb: "Revisar" },
   matching: { label: "Vacante analizada sin revisar", icon: "🎯", verb: "Revisar" },
   opportunity: { label: "Postulación activa sin comentar", icon: "📌", verb: "Comentar" },
+  psych: { label: "Herramienta psicolaboral completada sin comentar", icon: "🧭", verb: "Comentar" },
 };
 
 export default async function CoachPage() {
@@ -269,6 +271,32 @@ export default async function CoachPage() {
         });
       }
     }
+    // ---------- Herramientas psicolaborales completadas sin comentar ----------
+    const { data: psychAssignments } = await supabase
+      .from("psych_assignments")
+      .select("id, user_id, tool_key, completed_at")
+      .in("user_id", userIds)
+      .eq("status", "completado");
+
+    if (psychAssignments && psychAssignments.length > 0) {
+      const ids = psychAssignments.map((p) => p.id);
+      const { data: commented } = await supabase
+        .from("psych_comments")
+        .select("assignment_id")
+        .in("assignment_id", ids);
+      const commentedSet = new Set((commented ?? []).map((c) => c.assignment_id));
+      for (const p of psychAssignments) {
+        if (commentedSet.has(p.id)) continue;
+        pending.push({
+          type: "psych",
+          userId: p.user_id,
+          userName: userNameById.get(p.user_id) ?? "Usuario",
+          title: TOOLS[p.tool_key as ToolKey]?.title ?? p.tool_key,
+          date: p.completed_at,
+          href: `/dashboard/coach/${p.user_id}/psicolaboral`,
+        });
+      }
+    }
   }
 
   // Prioridad: entrevistas y tareas completadas primero (alguien ya hizo
@@ -279,9 +307,10 @@ export default async function CoachPage() {
     task: 1,
     calendar: 2,
     opportunity: 3,
-    cv: 4,
-    linkedin: 5,
-    matching: 6,
+    psych: 4,
+    cv: 5,
+    linkedin: 6,
+    matching: 7,
   };
   pending.sort((a, b) => {
     const pa = TYPE_PRIORITY[a.type];

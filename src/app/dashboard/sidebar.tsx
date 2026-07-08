@@ -169,12 +169,9 @@ export default function Sidebar({
           { label: "CRM", href: `${base}/crm` },
           { label: "Calendario", href: `${base}/calendario` },
           { label: "Tareas", href: `${base}/tareas` },
-          {
-            label: "Entrevistas",
-            href: `${base}/entrevistas`,
-            badgeTitle: "entrevistas por comentar",
-          },
+          { label: "Entrevistas", href: `${base}/entrevistas`, badgeTitle: "entrevistas por comentar" },
           { label: "Notas", href: `${base}/notas` },
+          { label: "Psicolaboral", href: `${base}/psicolaboral` },
         ],
       });
     }
@@ -211,6 +208,11 @@ export default function Sidebar({
             label: "Notas de tu coach",
             href: "/dashboard/notes",
             badgeTitle: "notas nuevas de tu coach",
+          },
+          {
+            label: "Herramientas psicolaborales",
+            href: "/dashboard/psicolaboral",
+            badgeTitle: "herramientas por responder o comentarios nuevos",
           },
         ],
       },
