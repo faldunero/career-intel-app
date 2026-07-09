@@ -199,19 +199,13 @@ export default async function DashboardLayout({
       badges["/dashboard/admin/headhunters"] = pendingHeadhunterRequests;
     }
 
-    const { data: openArcoRequests } = await supabase
+    const { count: openArcoCount } = await supabase
       .from("arco_requests")
-      .select("due_at")
+      .select("id", { count: "exact", head: true })
       .in("status", ["pendiente", "en_proceso"]);
 
-    const nowMs = new Date().getTime();
-    const urgentArcoCount = (openArcoRequests ?? []).filter((r) => {
-      const daysLeft = (new Date(r.due_at).getTime() - nowMs) / 86_400_000;
-      return daysLeft <= 5; // vencidas o a 5 días o menos del plazo legal
-    }).length;
-
-    if (urgentArcoCount > 0) {
-      badges["/dashboard/admin/arco"] = urgentArcoCount;
+    if (openArcoCount) {
+      badges["/dashboard/admin/arco"] = openArcoCount;
     }
   }
 

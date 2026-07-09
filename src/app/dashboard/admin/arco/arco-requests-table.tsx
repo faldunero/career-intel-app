@@ -54,12 +54,18 @@ function RequestRow({ request, adminId }: { request: Request; adminId: string })
   const [status, setStatus] = useState(request.status);
   const [notes, setNotes] = useState(request.resolution_notes ?? "");
   const [saving, setSaving] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const target = Array.isArray(request.target) ? request.target[0] : request.target;
   const days = daysUntil(request.due_at);
   const isOpen = request.status === "pendiente" || request.status === "en_proceso";
   const overdue = isOpen && days < 0;
   const dueSoon = isOpen && days >= 0 && days <= 5;
+  const canExecuteDeletion =
+    isOpen && request.request_type === "cancelacion" && !!request.target_user_id;
 
   async function handleSave() {
     setSaving(true);
@@ -78,6 +84,46 @@ function RequestRow({ request, adminId }: { request: Request; adminId: string })
       setOpen(false);
       router.refresh();
     }
+  }
+
+  async function handleExecuteDeletion() {
+    if (confirmText !== "ELIMINAR") return;
+    setDeleting(true);
+    setDeleteError(null);
+
+    const res = await fetch("/api/admin/accounts/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: [request.target_user_id] }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setDeleting(false);
+      setDeleteError(data.error ?? "No se pudo eliminar la cuenta");
+      return;
+    }
+
+    if (data.skipped?.length > 0) {
+      setDeleting(false);
+      setDeleteError(data.skipped[0].reason);
+      return;
+    }
+
+    // La cuenta se eliminó — deja la solicitud registrada como resuelta.
+    const autoNote = `Cuenta eliminada por el administrador el ${new Date().toLocaleDateString("es-CL")}.`;
+    await supabase
+      .from("arco_requests")
+      .update({
+        status: "resuelta",
+        resolution_notes: notes ? `${notes}\n\n${autoNote}` : autoNote,
+        resolved_at: new Date().toISOString(),
+        resolved_by: adminId,
+      })
+      .eq("id", request.id);
+
+    setDeleting(false);
+    router.refresh();
   }
 
   return (
@@ -149,6 +195,62 @@ function RequestRow({ request, adminId }: { request: Request; adminId: string })
             <p className="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
               {request.description}
             </p>
+          )}
+
+          {canExecuteDeletion && (
+            <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
+                Ejecutar la eliminación
+              </p>
+              <p className="mt-1 text-xs text-red-700">
+                Esto elimina la cuenta de{" "}
+                {target?.full_name ?? target?.email ?? "este usuario"} de
+                forma permanente e inmediata, y marca esta solicitud
+                como resuelta automáticamente.
+              </p>
+
+              {!confirmingDelete ? (
+                <button
+                  onClick={() => setConfirmingDelete(true)}
+                  className="mt-2 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"
+                >
+                  Eliminar cuenta ahora
+                </button>
+              ) : (
+                <div className="mt-2 flex flex-col gap-2">
+                  <label className="text-xs font-medium text-red-800">
+                    Escribe ELIMINAR para confirmar
+                  </label>
+                  <input
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    className="w-full max-w-xs rounded-lg border border-red-300 px-3 py-1.5 text-sm outline-none"
+                  />
+                  {deleteError && (
+                    <p className="text-xs text-red-700">{deleteError}</p>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleExecuteDeletion}
+                      disabled={deleting || confirmText !== "ELIMINAR"}
+                      className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {deleting ? "Eliminando…" : "Confirmar eliminación permanente"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setConfirmingDelete(false);
+                        setConfirmText("");
+                        setDeleteError(null);
+                      }}
+                      className="text-xs text-slate-500 hover:text-slate-800"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           <div className="mt-3 flex flex-col gap-2">
