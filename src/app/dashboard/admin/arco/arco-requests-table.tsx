@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 const REQUEST_TYPE_LABELS: Record<string, string> = {
   acceso: "Acceso",
@@ -47,9 +46,8 @@ function daysUntil(dueAt: string) {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
-function RequestRow({ request, adminId }: { request: Request; adminId: string }) {
+function RequestRow({ request }: { request: Request }) {
   const router = useRouter();
-  const supabase = createClient();
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState(request.status);
   const [notes, setNotes] = useState(request.resolution_notes ?? "");
@@ -69,18 +67,17 @@ function RequestRow({ request, adminId }: { request: Request; adminId: string })
 
   async function handleSave() {
     setSaving(true);
-    const isClosing = status === "resuelta" || status === "rechazada";
-    const { error } = await supabase
-      .from("arco_requests")
-      .update({
+    const res = await fetch("/api/arco/resolve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requestId: request.id,
         status,
-        resolution_notes: notes || null,
-        resolved_at: isClosing ? new Date().toISOString() : null,
-        resolved_by: isClosing ? adminId : null,
-      })
-      .eq("id", request.id);
+        resolutionNotes: notes || null,
+      }),
+    });
     setSaving(false);
-    if (!error) {
+    if (res.ok) {
       setOpen(false);
       router.refresh();
     }
@@ -110,17 +107,18 @@ function RequestRow({ request, adminId }: { request: Request; adminId: string })
       return;
     }
 
-    // La cuenta se eliminó — deja la solicitud registrada como resuelta.
+    // La cuenta se eliminó — deja la solicitud registrada como resuelta,
+    // y esto dispara el correo avisándole al solicitante.
     const autoNote = `Cuenta eliminada por el administrador el ${new Date().toLocaleDateString("es-CL")}.`;
-    await supabase
-      .from("arco_requests")
-      .update({
+    await fetch("/api/arco/resolve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requestId: request.id,
         status: "resuelta",
-        resolution_notes: notes ? `${notes}\n\n${autoNote}` : autoNote,
-        resolved_at: new Date().toISOString(),
-        resolved_by: adminId,
-      })
-      .eq("id", request.id);
+        resolutionNotes: notes ? `${notes}\n\n${autoNote}` : autoNote,
+      }),
+    });
 
     setDeleting(false);
     router.refresh();
@@ -294,10 +292,8 @@ function RequestRow({ request, adminId }: { request: Request; adminId: string })
 
 export default function ArcoRequestsTable({
   requests,
-  adminId,
 }: {
   requests: Request[];
-  adminId: string;
 }) {
   if (requests.length === 0) {
     return (
@@ -325,7 +321,7 @@ export default function ArcoRequestsTable({
             <p className="text-sm text-slate-400">Sin solicitudes abiertas.</p>
           )}
           {abiertas.map((r) => (
-            <RequestRow key={r.id} request={r} adminId={adminId} />
+            <RequestRow key={r.id} request={r} />
           ))}
         </div>
       </div>
@@ -337,7 +333,7 @@ export default function ArcoRequestsTable({
           </h2>
           <div className="flex flex-col gap-2">
             {cerradas.map((r) => (
-              <RequestRow key={r.id} request={r} adminId={adminId} />
+              <RequestRow key={r.id} request={r} />
             ))}
           </div>
         </div>

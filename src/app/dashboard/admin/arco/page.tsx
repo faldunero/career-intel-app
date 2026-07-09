@@ -48,12 +48,12 @@ export default async function ArcoRequestsPage() {
           Registrar nueva solicitud
         </h2>
         <div className="mt-3">
-          <NewArcoRequestForm usuarios={usuarios ?? []} adminId={user.id} />
+          <NewArcoRequestForm usuarios={usuarios ?? []} />
         </div>
       </div>
 
       <div className="mt-6">
-        <ArcoRequestsTable requests={requests ?? []} adminId={user.id} />
+        <ArcoRequestsTable requests={requests ?? []} />
       </div>
     </div>
   );

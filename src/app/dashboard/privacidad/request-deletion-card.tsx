@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 type ExistingRequest = {
   id: string;
@@ -12,20 +11,13 @@ type ExistingRequest = {
 } | null;
 
 export default function RequestDeletionCard({
-  userId,
-  userName,
-  userEmail,
   existingRequest,
   contextNote,
 }: {
-  userId: string;
-  userName: string;
-  userEmail: string;
   existingRequest: ExistingRequest;
   contextNote: string;
 }) {
   const router = useRouter();
-  const supabase = createClient();
   const [confirming, setConfirming] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,18 +26,18 @@ export default function RequestDeletionCard({
     setSaving(true);
     setError(null);
 
-    const { error } = await supabase.from("arco_requests").insert({
-      request_type: "cancelacion",
-      requester_name: userName,
-      requester_email: userEmail,
-      target_user_id: userId,
-      created_by: userId,
-      description: "Solicitud de eliminación de cuenta, enviada por el propio titular desde Privacidad.",
+    const res = await fetch("/api/arco/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        description: "Solicitud de eliminación de cuenta, enviada por el propio titular desde Privacidad.",
+      }),
     });
+    const data = await res.json();
 
     setSaving(false);
-    if (error) {
-      setError(error.message);
+    if (!res.ok) {
+      setError(data.error ?? "No se pudo enviar la solicitud");
       return;
     }
     setConfirming(false);

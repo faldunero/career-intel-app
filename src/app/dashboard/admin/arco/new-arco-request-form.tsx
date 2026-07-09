@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 const REQUEST_TYPES: Record<string, string> = {
   acceso: "Acceso",
@@ -15,13 +14,10 @@ const REQUEST_TYPES: Record<string, string> = {
 
 export default function NewArcoRequestForm({
   usuarios,
-  adminId,
 }: {
   usuarios: { id: string; full_name: string | null; email: string }[];
-  adminId: string;
 }) {
   const router = useRouter();
-  const supabase = createClient();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,18 +41,22 @@ export default function NewArcoRequestForm({
     setSaving(true);
     setError(null);
 
-    const { error } = await supabase.from("arco_requests").insert({
-      request_type: requestType,
-      requester_name: requesterName,
-      requester_email: requesterEmail,
-      target_user_id: targetUserId || null,
-      description: description || null,
-      created_by: adminId,
+    const res = await fetch("/api/arco/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requestType,
+        requesterName,
+        requesterEmail,
+        targetUserId: targetUserId || null,
+        description: description || null,
+      }),
     });
+    const data = await res.json();
 
     setSaving(false);
-    if (error) {
-      setError(error.message);
+    if (!res.ok) {
+      setError(data.error ?? "No se pudo registrar la solicitud");
       return;
     }
     reset();

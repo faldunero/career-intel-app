@@ -26,7 +26,6 @@ export default async function PrivacyRightsPage() {
     .single();
 
   const role = profile?.role ?? "usuario";
-  const userName = profile?.full_name ?? user.email ?? "—";
 
   let existingDeletionRequest = null;
   if (role === "coach" || role === "administrador" || role === "headhunter") {
@@ -72,9 +71,6 @@ export default async function PrivacyRightsPage() {
           </div>
           <NoteVisibilityInfoCard />
           <RequestDeletionCard
-            userId={user.id}
-            userName={userName}
-            userEmail={user.email ?? ""}
             existingRequest={existingDeletionRequest}
             contextNote="Tu cuenta está vinculada a los usuarios que acompañas, así que no se elimina al instante — un administrador la revisa antes de ejecutarla, para asegurarse de que tus usuarios queden bien cubiertos."
           />
@@ -88,9 +84,6 @@ export default async function PrivacyRightsPage() {
           </div>
           <AdminArcoLinkCard />
           <RequestDeletionCard
-            userId={user.id}
-            userName={userName}
-            userEmail={user.email ?? ""}
             existingRequest={existingDeletionRequest}
             contextNote="Como administrador, tu solicitud la debe resolver otro administrador (o el superadmin) — no puedes aprobarte tu propia baja."
           />
@@ -106,9 +99,6 @@ export default async function PrivacyRightsPage() {
             expiresAt={profile?.headhunter_access_expires_at ?? null}
           />
           <RequestDeletionCard
-            userId={user.id}
-            userName={userName}
-            userEmail={user.email ?? ""}
             existingRequest={existingDeletionRequest}
             contextNote="Tu acceso lo gestiona un administrador, así que la baja también pasa por ahí en vez de ser instantánea."
           />
