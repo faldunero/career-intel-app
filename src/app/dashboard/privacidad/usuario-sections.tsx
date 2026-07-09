@@ -48,7 +48,7 @@ export function HeadhunterVisibilityCard() {
   return (
     <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-lg font-medium text-slate-900">
-        Visibilidad para headhunters
+        Visibilidad para headhunters — consentimiento (Ley 21.719)
       </h2>
       <p className="mt-1 text-sm text-slate-600">
         Si activas esto, tu nombre, cargo, industria y tu CV quedan
@@ -115,7 +115,9 @@ export function SelfDeleteAccountCard() {
 
   return (
     <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-6">
-      <h2 className="text-lg font-medium text-red-900">Eliminar mi cuenta</h2>
+      <h2 className="text-lg font-medium text-red-900">
+        Eliminar mi cuenta — derecho de cancelación (Ley 21.719)
+      </h2>
       <p className="mt-1 text-sm text-red-700">
         Esta acción es permanente e irreversible. Se eliminan tu perfil,
         CVs, análisis, historial de postulaciones, transcripciones de

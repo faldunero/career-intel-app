@@ -46,7 +46,7 @@ export default function PsychConsentGate() {
 
       <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-          Qué necesitas saber antes de aceptar
+          Consentimiento específico — Ley 21.719
         </h2>
         <ul className="mt-3 flex flex-col gap-3 text-sm text-slate-700">
           <li className="flex gap-2">

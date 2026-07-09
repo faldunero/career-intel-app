@@ -141,6 +141,11 @@ export default function Sidebar({
         { label: "Datos de prueba", href: "/dashboard/admin/datos-prueba" },
         { label: "Mantenedor de cuentas", href: "/dashboard/admin/mantenedor" },
         { label: "Descargas de CV", href: "/dashboard/admin/descargas-cv" },
+        {
+          label: "Solicitudes ARCO+",
+          href: "/dashboard/admin/arco",
+          badgeTitle: "solicitudes ARCO+ vencidas o por vencer",
+        },
       ],
     });
   } else if (role === "coach") {

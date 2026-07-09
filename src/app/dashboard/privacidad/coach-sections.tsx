@@ -2,7 +2,8 @@ export function NoteVisibilityInfoCard() {
   return (
     <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-lg font-medium text-slate-900">
-        Qué ve el usuario de lo que tú escribes
+        Qué ve el usuario de lo que tú escribes — Ley 21.719
+        (transparencia)
       </h2>
       <div className="mt-3 flex flex-col gap-3 text-sm text-slate-600">
         <p>
@@ -32,7 +33,7 @@ export function CoachOffboardingCard() {
   return (
     <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6">
       <h2 className="text-lg font-medium text-slate-900">
-        Eliminar mi cuenta
+        Eliminar mi cuenta — derecho de cancelación (Ley 21.719)
       </h2>
       <p className="mt-1 text-sm text-slate-600">
         A diferencia de un usuario, tu cuenta de coach no se elimina

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import ExportDataCard from "./export-data-card";
 import { HeadhunterVisibilityCard, SelfDeleteAccountCard } from "./usuario-sections";
 import { NoteVisibilityInfoCard, CoachOffboardingCard } from "./coach-sections";
+import { AdminArcoLinkCard } from "./admin-sections";
 
 export default async function PrivacyRightsPage() {
   const supabase = await createClient();
@@ -26,9 +27,12 @@ export default async function PrivacyRightsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-semibold text-slate-900">Privacidad</h1>
+      <h1 className="text-2xl font-semibold text-slate-900">
+        Privacidad — Ley 21.719
+      </h1>
       <p className="mt-1 text-sm text-slate-500">
-        Gestiona tus datos personales, de acuerdo a la{" "}
+        Tus derechos sobre tus datos personales bajo la Ley 21.719 de
+        Protección de Datos Personales, de acuerdo a nuestra{" "}
         <Link href="/privacidad" target="_blank" className="underline">
           Política de Privacidad
         </Link>
@@ -55,14 +59,23 @@ export default async function PrivacyRightsPage() {
         </>
       )}
 
-      {(role === "administrador" || role === "headhunter") && (
+      {role === "administrador" && (
+        <>
+          <div className="mt-6">
+            <ExportDataCard description="Descarga una copia de tu perfil y tus datos de cuenta en formato JSON." />
+          </div>
+          <AdminArcoLinkCard />
+        </>
+      )}
+
+      {role === "headhunter" && (
         <>
           <div className="mt-6">
             <ExportDataCard description="Descarga una copia de tu perfil y tus datos de cuenta en formato JSON." />
           </div>
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6">
             <h2 className="text-lg font-medium text-slate-900">
-              Otros derechos sobre tus datos
+              Otros derechos ARCO+ — Ley 21.719
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               Para rectificar, eliminar tu cuenta, o ejercer cualquier

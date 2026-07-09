@@ -25,7 +25,7 @@ export default function ExportDataCard({
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-lg font-medium text-slate-900">
-        Acceso y portabilidad
+        Acceso y portabilidad — Ley 21.719
       </h2>
       <p className="mt-1 text-sm text-slate-600">{description}</p>
       <button

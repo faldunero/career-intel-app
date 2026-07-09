@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Política de Privacidad — Career Intelligence AI",
+  title: "Política de Privacidad — Ley 21.719 — Career Intelligence AI",
 };
 
 export default function PrivacyPolicyPage() {
@@ -22,7 +22,7 @@ export default function PrivacyPolicyPage() {
         </Link>
 
         <h1 className="mt-6 text-3xl font-semibold tracking-tight">
-          Política de Privacidad
+          Política de Privacidad — Ley 21.719
         </h1>
         <p className="mt-2 text-sm text-[#666]">
           Última actualización: [FECHA]
@@ -32,7 +32,9 @@ export default function PrivacyPolicyPage() {
           <p>
             En [NOMBRE DE LA EMPRESA] nos tomamos en serio tu privacidad.
             Este documento explica, en lenguaje simple, qué información
-            recopilamos, para qué la usamos y qué puedes hacer al respecto.
+            recopilamos, para qué la usamos y qué puedes hacer al
+            respecto, de acuerdo a la Ley 21.719 de Protección de Datos
+            Personales de Chile.
           </p>
 
           <section>
@@ -75,16 +77,25 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold">Tus derechos</h2>
+            <h2 className="mb-2 text-lg font-semibold">
+              Tus derechos (ARCO+) — Ley 21.719
+            </h2>
             <p>
-              Puedes pedirnos acceder, corregir o eliminar tus datos en
-              cualquier momento. Desde{" "}
+              La Ley 21.719 te da derecho a Acceder, Rectificar,
+              Cancelar (eliminar) y Oponerte al tratamiento de tus
+              datos, además de Portabilidad y Bloqueo. Desde{" "}
               <Link href="/dashboard/privacidad" className="underline">
                 tu cuenta, en la sección Privacidad
               </Link>
-              , puedes descargar todos tus datos o eliminar tu cuenta por
-              tu cuenta, sin tener que pedírnoslo. Para cualquier otra
-              consulta, escríbenos a [correo de contacto].
+              , puedes descargar todos tus datos o eliminar tu cuenta
+              por tu cuenta, sin tener que pedírnoslo. Para cualquier
+              otra solicitud, escríbenos a [correo de contacto] — te
+              respondemos dentro de los 30 días que establece la ley.
+            </p>
+            <p className="mt-3">
+              Si consideras que no dimos respuesta adecuada a una
+              solicitud, puedes reclamar ante la Agencia de Protección
+              de Datos Personales de Chile.
             </p>
           </section>
 
