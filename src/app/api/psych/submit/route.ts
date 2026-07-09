@@ -67,6 +67,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("psych_consent_at")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.psych_consent_at) {
+    return NextResponse.json(
+      { error: "Debes aceptar el consentimiento de Psicolaboral antes de responder." },
+      { status: 403 }
+    );
+  }
+
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return NextResponse.json(

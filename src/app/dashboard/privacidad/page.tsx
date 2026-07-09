@@ -104,8 +104,10 @@ export default function PrivacyRightsPage() {
         </h2>
         <p className="mt-1 text-sm text-slate-600">
           Descarga una copia de todos los datos personales asociados a tu
-          cuenta (perfil, CVs, análisis, oportunidades, tareas, calendario
-          y entrevistas) en formato JSON.
+          cuenta — tu perfil, CVs, LinkedIn, matching, oportunidades,
+          tareas, calendario, entrevistas y herramientas psicolaborales,
+          incluyendo los comentarios y notas que tu coach haya dejado
+          sobre ti — en formato JSON.
         </p>
         <button
           onClick={handleDownload}

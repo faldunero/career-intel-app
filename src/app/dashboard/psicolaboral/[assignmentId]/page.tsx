@@ -12,6 +12,7 @@ import LikertForm from "@/components/psych/likert-form";
 import ChoiceForm from "@/components/psych/choice-form";
 import PsychResultView, { type PsychResult } from "@/components/psych/result-view";
 import CommentList from "@/components/cv/comment-list";
+import PsychConsentGate from "@/components/psych/consent-gate";
 
 export default async function PsicolaboralAssignmentPage({
   params,
@@ -20,6 +21,16 @@ export default async function PsicolaboralAssignmentPage({
 }) {
   const { assignmentId } = await params;
   const { supabase, user } = await requireUsuario();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("psych_consent_at")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.psych_consent_at) {
+    return <PsychConsentGate />;
+  }
 
   const { data: assignment } = await supabase
     .from("psych_assignments")

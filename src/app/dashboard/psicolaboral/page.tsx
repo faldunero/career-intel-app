@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireUsuario } from "@/lib/require-usuario";
 import { TOOLS, TOOL_ORDER, type ToolKey } from "@/lib/psych-tools";
+import PsychConsentGate from "@/components/psych/consent-gate";
 
 type Assignment = {
   id: string;
@@ -12,6 +13,16 @@ type Assignment = {
 
 export default async function PsicolaboralPage() {
   const { supabase, user } = await requireUsuario();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("psych_consent_at")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.psych_consent_at) {
+    return <PsychConsentGate />;
+  }
 
   const { data: assignments } = await supabase
     .from("psych_assignments")
