@@ -105,23 +105,43 @@ function RequestRow({ request }: { request: Request }) {
     }
     setSaving(true);
     setSaveError(null);
-    const res = await fetch("/api/arco/resolve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        requestId: request.id,
-        status,
-        resolutionNotes: notes || null,
-      }),
-    });
-    setSaving(false);
-    if (!res.ok) {
-      const data = await res.json();
-      setSaveError(data.error ?? "No se pudo guardar");
-      return;
+
+    try {
+      const res = await fetch("/api/arco/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestId: request.id,
+          status,
+          resolutionNotes: notes || null,
+        }),
+      });
+
+      let data: { error?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        // sin cuerpo JSON válido — el mensaje genérico de abajo se hace cargo
+      }
+
+      if (!res.ok) {
+        setSaving(false);
+        setSaveError(
+          typeof data.error === "string" && data.error
+            ? data.error
+            : `No se pudo guardar (error ${res.status}).`
+        );
+        return;
+      }
+      setSaving(false);
+      setOpen(false);
+      router.refresh();
+    } catch (err) {
+      setSaving(false);
+      setSaveError(
+        err instanceof Error ? err.message : "No se pudo conectar con el servidor"
+      );
     }
-    setOpen(false);
-    router.refresh();
   }
 
   // Un solo botón: si el estado elegido es "Eliminada", en vez de
@@ -147,24 +167,42 @@ function RequestRow({ request }: { request: Request }) {
     setDeleting(true);
     setDeleteError(null);
 
-    const res = await fetch("/api/arco/execute-deletion", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        requestId: request.id,
-        resolutionNotes: notes,
-      }),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/arco/execute-deletion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestId: request.id,
+          resolutionNotes: notes,
+        }),
+      });
 
-    if (!res.ok) {
+      let data: { error?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        // La respuesta no traía JSON válido — sigue con data vacío,
+        // el mensaje genérico de abajo se hace cargo.
+      }
+
+      if (!res.ok) {
+        setDeleting(false);
+        setDeleteError(
+          typeof data.error === "string" && data.error
+            ? data.error
+            : `No se pudo eliminar la cuenta (error ${res.status}). Revisa los logs del servidor.`
+        );
+        return;
+      }
+
       setDeleting(false);
-      setDeleteError(data.error ?? "No se pudo eliminar la cuenta");
-      return;
+      router.refresh();
+    } catch (err) {
+      setDeleting(false);
+      setDeleteError(
+        err instanceof Error ? err.message : "No se pudo conectar con el servidor"
+      );
     }
-
-    setDeleting(false);
-    router.refresh();
   }
 
   return (
