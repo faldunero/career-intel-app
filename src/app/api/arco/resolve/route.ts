@@ -57,6 +57,16 @@ export async function POST(request: Request) {
 
   const isClosing = status === "resuelta" || status === "rechazada";
 
+  if (isClosing && !resolutionNotes?.trim()) {
+    return NextResponse.json(
+      {
+        error:
+          "Debes dejar un comentario con el motivo antes de marcar esta solicitud como resuelta o rechazada.",
+      },
+      { status: 400 }
+    );
+  }
+
   const { error } = await admin
     .from("arco_requests")
     .update({

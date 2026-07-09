@@ -52,6 +52,7 @@ function RequestRow({ request }: { request: Request }) {
   const [status, setStatus] = useState(request.status);
   const [notes, setNotes] = useState(request.resolution_notes ?? "");
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -65,8 +66,18 @@ function RequestRow({ request }: { request: Request }) {
   const canExecuteDeletion =
     isOpen && request.request_type === "cancelacion" && !!request.target_user_id;
 
+  const isClosingStatus = status === "resuelta" || status === "rechazada";
+  const missingNotes = isClosingStatus && !notes.trim();
+
   async function handleSave() {
+    if (missingNotes) {
+      setSaveError(
+        "Debes dejar un comentario con el motivo antes de marcar esta solicitud como resuelta o rechazada."
+      );
+      return;
+    }
     setSaving(true);
+    setSaveError(null);
     const res = await fetch("/api/arco/resolve", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -77,10 +88,13 @@ function RequestRow({ request }: { request: Request }) {
       }),
     });
     setSaving(false);
-    if (res.ok) {
-      setOpen(false);
-      router.refresh();
+    if (!res.ok) {
+      const data = await res.json();
+      setSaveError(data.error ?? "No se pudo guardar");
+      return;
     }
+    setOpen(false);
+    router.refresh();
   }
 
   async function handleExecuteDeletion() {
@@ -88,10 +102,13 @@ function RequestRow({ request }: { request: Request }) {
     setDeleting(true);
     setDeleteError(null);
 
-    const res = await fetch("/api/admin/accounts/delete", {
+    const res = await fetch("/api/arco/execute-deletion", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: [request.target_user_id] }),
+      body: JSON.stringify({
+        requestId: request.id,
+        resolutionNotes: notes,
+      }),
     });
     const data = await res.json();
 
@@ -100,25 +117,6 @@ function RequestRow({ request }: { request: Request }) {
       setDeleteError(data.error ?? "No se pudo eliminar la cuenta");
       return;
     }
-
-    if (data.skipped?.length > 0) {
-      setDeleting(false);
-      setDeleteError(data.skipped[0].reason);
-      return;
-    }
-
-    // La cuenta se eliminó — deja la solicitud registrada como resuelta,
-    // y esto dispara el correo avisándole al solicitante.
-    const autoNote = `Cuenta eliminada por el administrador el ${new Date().toLocaleDateString("es-CL")}.`;
-    await fetch("/api/arco/resolve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        requestId: request.id,
-        status: "resuelta",
-        resolutionNotes: notes ? `${notes}\n\n${autoNote}` : autoNote,
-      }),
-    });
 
     setDeleting(false);
     router.refresh();
@@ -207,10 +205,19 @@ function RequestRow({ request }: { request: Request }) {
                 como resuelta automáticamente.
               </p>
 
+              {!notes.trim() && (
+                <p className="mt-2 text-xs font-medium text-red-800">
+                  Antes de eliminar, escribe el motivo en &quot;Notas de
+                  resolución&quot; más abajo — queda como registro de
+                  auditoría de por qué se ejecutó esta baja.
+                </p>
+              )}
+
               {!confirmingDelete ? (
                 <button
                   onClick={() => setConfirmingDelete(true)}
-                  className="mt-2 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"
+                  disabled={!notes.trim()}
+                  className="mt-2 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Eliminar cuenta ahora
                 </button>
@@ -275,10 +282,18 @@ function RequestRow({ request }: { request: Request }) {
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
               placeholder="Qué se hizo para resolver esta solicitud..."
             />
+            {isClosingStatus && (
+              <p className="text-[11px] text-slate-400">
+                Obligatorio para marcar como resuelta o rechazada — queda
+                como registro de auditoría.
+              </p>
+            )}
+
+            {saveError && <p className="text-xs text-red-600">{saveError}</p>}
 
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || missingNotes}
               className="mt-1 w-fit rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
             >
               {saving ? "Guardando…" : "Guardar cambios"}
