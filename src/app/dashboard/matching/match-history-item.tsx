@@ -4,6 +4,9 @@ import { useState } from "react";
 import DeleteMatchButton from "./delete-match-button";
 import ConvertToOpportunityButton from "./convert-to-opportunity-button";
 import CoverLetterButton from "./cover-letter-button";
+import ScoreBar from "@/components/cv/score-bar";
+import AnalysisSection from "@/components/cv/analysis-section";
+import CommentList from "@/components/cv/comment-list";
 
 type MatchAnalysis = {
   fortalezas?: string[];
@@ -25,21 +28,12 @@ const SECTION_LABELS: Record<string, string> = {
   acciones_prioritarias: "Acciones prioritarias",
 };
 
-function CommentBubbles({ comments }: { comments: Comment[] }) {
-  if (comments.length === 0) return null;
-  return (
-    <div className="mt-2 flex flex-col gap-1.5">
-      {comments.map((c) => (
-        <p
-          key={c.id}
-          className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-slate-700"
-        >
-          💬 <span className="font-medium">Tu coach:</span> {c.comment}
-        </p>
-      ))}
-    </div>
-  );
-}
+const SECTIONS: Array<keyof MatchAnalysis> = [
+  "fortalezas",
+  "brechas",
+  "riesgos",
+  "acciones_prioritarias",
+];
 
 export default function MatchHistoryItem({
   match,
@@ -71,12 +65,6 @@ export default function MatchHistoryItem({
   }
 
   const totalComments = comments.length;
-  const sections: Array<keyof MatchAnalysis> = [
-    "fortalezas",
-    "brechas",
-    "riesgos",
-    "acciones_prioritarias",
-  ];
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white">
@@ -100,7 +88,7 @@ export default function MatchHistoryItem({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {totalComments > 0 && (
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
               {totalComments} comentario{totalComments !== 1 ? "s" : ""}
             </span>
           )}
@@ -118,39 +106,45 @@ export default function MatchHistoryItem({
       </button>
 
       {open && (
-        <div className="border-t border-slate-100 px-4 pb-5">
+        <div className="border-t border-slate-100 px-4 pb-5 pt-4">
           {analysis && (
-            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 sm:grid-cols-3">
-              {match.matching_ats !== null && <span>ATS: {match.matching_ats}</span>}
-              <span>Técnico: {match.matching_tecnico ?? "—"}</span>
-              <span>Liderazgo: {match.matching_liderazgo ?? "N/A"}</span>
-              <span>Cultural: {match.matching_cultural ?? "—"}</span>
-              <span>Experiencia: {match.matching_experiencia ?? "—"}</span>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <ScoreBar label="ATS" score={match.matching_ats} />
+              <ScoreBar label="Técnico" score={match.matching_tecnico} />
+              <ScoreBar label="Liderazgo" score={match.matching_liderazgo} />
+              <ScoreBar label="Cultural (estimado)" score={match.matching_cultural} />
+              <ScoreBar label="Experiencia" score={match.matching_experiencia} />
             </div>
           )}
 
-          {analysis &&
-            sections.map((section) => {
-              const items = analysis[section] as string[] | undefined;
-              if (!items || items.length === 0) return null;
-              return (
-                <div key={section} className="mt-4">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    {SECTION_LABELS[section]}
-                  </h4>
-                  <ul className="mt-1 list-disc pl-5 text-xs text-slate-600">
-                    {items.map((item, i) => (
-                      <li key={i}>{item}</li>
-                    ))}
-                  </ul>
-                  <CommentBubbles comments={commentsFor(section)} />
-                </div>
-              );
-            })}
+          {analysis && (
+            <div className="mt-2 divide-y divide-slate-100">
+              {SECTIONS.map((section) => {
+                const items = analysis[section] as string[] | undefined;
+                return (
+                  <AnalysisSection
+                    key={section}
+                    title={SECTION_LABELS[section]}
+                    section={section}
+                    items={items}
+                  >
+                    <CommentList comments={commentsFor(section)} />
+                  </AnalysisSection>
+                );
+              })}
+            </div>
+          )}
 
-          <CommentBubbles comments={commentsFor(null)} />
+          {commentsFor(null).length > 0 && (
+            <div className="border-t border-slate-100 pt-4">
+              <h4 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Comentario general de tu coach
+              </h4>
+              <CommentList comments={commentsFor(null)} />
+            </div>
+          )}
 
-          <div className="mt-4 flex flex-col gap-3">
+          <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4">
             <ConvertToOpportunityButton
               matchId={match.id}
               userId={userId}

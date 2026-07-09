@@ -63,28 +63,22 @@ export default async function CoachUserCrmPage({
       </h1>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xl font-semibold text-slate-900">
-            {porPostular}
-          </p>
-          <p className="text-xs text-slate-500">Por postular</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xl font-semibold text-slate-900">
-            {postulaciones}
-          </p>
-          <p className="text-xs text-slate-500">Postulaciones</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xl font-semibold text-slate-900">
-            {entrevistas}
-          </p>
-          <p className="text-xs text-slate-500">En entrevista</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xl font-semibold text-slate-900">{ofertas}</p>
-          <p className="text-xs text-slate-500">Ofertas</p>
-        </div>
+        {[
+          ["Por postular", porPostular],
+          ["Postulaciones", postulaciones],
+          ["En entrevista", entrevistas],
+          ["Ofertas", ofertas],
+        ].map(([label, value]) => (
+          <div
+            key={label as string}
+            className="rounded-xl border border-slate-200 bg-white p-4 text-center"
+          >
+            <p className="text-xl font-semibold text-slate-900">{value}</p>
+            <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              {label}
+            </p>
+          </div>
+        ))}
       </div>
       <p className="mt-2 text-xs text-slate-400">
         &quot;Por postular&quot; son candidatas que el usuario guardó pero

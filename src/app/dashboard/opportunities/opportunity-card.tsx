@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import CommentList from "@/components/cv/comment-list";
 
 const STATUS_OPTIONS: { value: string; label: string; color: string }[] = [
   { value: "por_postular", label: "Por postular", color: "bg-slate-100 text-slate-700" },
@@ -254,13 +255,13 @@ export default function OpportunityCard({
         <div className="flex shrink-0 items-center gap-3">
           <button
             onClick={() => setEditing(true)}
-            className="text-xs font-medium text-slate-500 underline hover:text-slate-800"
+            className="text-xs font-medium text-slate-500 hover:text-slate-800"
           >
             Editar
           </button>
           <button
             onClick={handleDelete}
-            className="text-xs font-medium text-red-500 underline hover:text-red-700"
+            className="text-xs font-medium text-red-500 hover:text-red-700"
           >
             Eliminar
           </button>
@@ -285,7 +286,7 @@ export default function OpportunityCard({
             href={opp.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-slate-500 underline hover:text-slate-800"
+            className="text-xs text-slate-500 hover:text-slate-800"
           >
             Ver publicación
           </a>
@@ -306,9 +307,9 @@ export default function OpportunityCard({
         <p className="mt-2">
           <a
             href="/dashboard/matching"
-            className="text-xs text-blue-700 hover:underline"
+            className="text-xs font-medium text-slate-500 hover:text-slate-800"
           >
-            🔗 Viene de un análisis de Matching — ver detalle completo
+            Viene de un análisis de Matching — ver detalle completo
           </a>
         </p>
       )}
@@ -318,22 +319,15 @@ export default function OpportunityCard({
       )}
 
       {comments.length > 0 && (
-        <div className="mt-3 flex flex-col gap-1.5 border-t border-slate-100 pt-3">
-          {comments.map((c) => (
-            <p
-              key={c.id}
-              className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-slate-700"
-            >
-              💬 <span className="font-medium">Tu coach:</span> {c.comment}
-            </p>
-          ))}
+        <div className="mt-3 border-t border-slate-100 pt-3">
+          <CommentList comments={comments} />
           {unseenComments.length > 0 && (
             <button
               onClick={handleMarkSeen}
               disabled={markingSeen}
-              className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:border-slate-400 hover:text-slate-800 disabled:opacity-50"
+              className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:border-slate-400 hover:text-slate-800 disabled:opacity-50"
             >
-              {markingSeen ? "Marcando..." : "✓ Marcar como visto"}
+              {markingSeen ? "Marcando…" : "Marcar como visto"}
             </button>
           )}
         </div>

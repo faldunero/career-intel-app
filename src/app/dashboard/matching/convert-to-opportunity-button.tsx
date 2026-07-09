@@ -47,9 +47,9 @@ export default function ConvertToOpportunityButton({
 
   if (done) {
     return (
-      <p className="text-xs text-green-700">
-        ✅ Agregada al CRM.{" "}
-        <a href="/dashboard/opportunities" className="underline">
+      <p className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-800">
+        Agregada al CRM.{" "}
+        <a href="/dashboard/opportunities" className="font-medium hover:text-green-900">
           Verla ahí
         </a>
         .

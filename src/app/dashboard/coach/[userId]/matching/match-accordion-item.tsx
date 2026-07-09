@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import MatchingCommentThread from "./matching-comment-thread";
+import ScoreBar from "@/components/cv/score-bar";
+import AnalysisSection from "@/components/cv/analysis-section";
 
 type MatchAnalysis = {
   fortalezas?: string[];
@@ -40,21 +42,12 @@ const SECTION_LABELS: Record<string, string> = {
   acciones_prioritarias: "Acciones prioritarias",
 };
 
-function ScoreDot({ score }: { score: number }) {
-  const color =
-    score >= 75 ? "bg-green-500" : score >= 50 ? "bg-amber-500" : "bg-red-500";
-  return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />;
-}
-
-function SubScore({ label, score }: { label: string; score: number | null }) {
-  if (score === null) return null;
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
-      <ScoreDot score={score} />
-      {label}: {score}
-    </span>
-  );
-}
+const SECTIONS: Array<keyof MatchAnalysis> = [
+  "fortalezas",
+  "brechas",
+  "riesgos",
+  "acciones_prioritarias",
+];
 
 export default function MatchAccordionItem({
   match,
@@ -74,13 +67,6 @@ export default function MatchAccordionItem({
   }
 
   const totalComments = comments.length;
-
-  const sections: Array<keyof MatchAnalysis> = [
-    "fortalezas",
-    "brechas",
-    "riesgos",
-    "acciones_prioritarias",
-  ];
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white">
@@ -104,7 +90,7 @@ export default function MatchAccordionItem({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {totalComments > 0 && (
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
               {totalComments} comentario{totalComments !== 1 ? "s" : ""}
             </span>
           )}
@@ -129,7 +115,7 @@ export default function MatchAccordionItem({
                 onClick={() => setShowDescription((v) => !v)}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:border-slate-400 hover:text-slate-800"
               >
-                📄 {showDescription ? "Ocultar" : "Ver"} descripción original de la vacante
+                {showDescription ? "Ocultar" : "Ver"} descripción original de la vacante
               </button>
               {showDescription && (
                 <p className="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
@@ -139,12 +125,12 @@ export default function MatchAccordionItem({
             </div>
           )}
 
-          <div className="mt-3 flex flex-wrap gap-3">
-            <SubScore label="ATS" score={match.matching_ats} />
-            <SubScore label="Técnico" score={match.matching_tecnico} />
-            <SubScore label="Liderazgo" score={match.matching_liderazgo} />
-            <SubScore label="Cultural" score={match.matching_cultural} />
-            <SubScore label="Experiencia" score={match.matching_experiencia} />
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ScoreBar label="ATS" score={match.matching_ats} />
+            <ScoreBar label="Técnico" score={match.matching_tecnico} />
+            <ScoreBar label="Liderazgo" score={match.matching_liderazgo} />
+            <ScoreBar label="Cultural (estimado)" score={match.matching_cultural} />
+            <ScoreBar label="Experiencia" score={match.matching_experiencia} />
           </div>
 
           {!analysis && (
@@ -153,44 +139,34 @@ export default function MatchAccordionItem({
             </p>
           )}
 
-          {analysis &&
-            sections.map((section) => {
-              const items = analysis[section] as string[] | undefined;
-              if (!items || items.length === 0) return null;
-              const sectionComments = commentsFor(section);
-              return (
-                <div key={section} className="border-t border-slate-100 py-5">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      {SECTION_LABELS[section]}
-                    </h4>
-                    {sectionComments.length > 0 && (
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                        {sectionComments.length} comentario
-                        {sectionComments.length !== 1 ? "s" : ""}
-                      </span>
-                    )}
-                  </div>
-                  <ul className="mt-3 flex flex-col gap-2 pl-5 text-sm text-slate-700">
-                    {items.map((item, i) => (
-                      <li key={i} className="list-disc">
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <MatchingCommentThread
-                    jobMatchId={match.id}
-                    coachId={coachId}
+          {analysis && (
+            <div className="mt-2 divide-y divide-slate-100">
+              {SECTIONS.map((section) => {
+                const items = analysis[section] as string[] | undefined;
+                const sectionComments = commentsFor(section);
+                return (
+                  <AnalysisSection
+                    key={section}
+                    title={SECTION_LABELS[section]}
                     section={section}
-                    comments={sectionComments}
-                    placeholder={`Tu opinión sobre "${SECTION_LABELS[section]}"...`}
-                  />
-                </div>
-              );
-            })}
+                    items={items}
+                    commentCount={sectionComments.length}
+                  >
+                    <MatchingCommentThread
+                      jobMatchId={match.id}
+                      coachId={coachId}
+                      section={section}
+                      comments={sectionComments}
+                      placeholder={`Tu opinión sobre "${SECTION_LABELS[section]}"...`}
+                    />
+                  </AnalysisSection>
+                );
+              })}
+            </div>
+          )}
 
           <div className="border-t border-slate-100 pt-5">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <h4 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
               Comentario general de esta vacante
             </h4>
             <MatchingCommentThread

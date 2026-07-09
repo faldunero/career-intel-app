@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ConvertToOpportunityButton from "./convert-to-opportunity-button";
 import CoverLetterButton from "./cover-letter-button";
+import ScoreRing from "@/components/cv/score-ring";
+import ScoreBar from "@/components/cv/score-bar";
+import { TextList } from "@/components/cv/analysis-section";
 
 type Analysis = {
   empresa: string | null;
@@ -20,54 +23,16 @@ type Analysis = {
   acciones_prioritarias: string[];
 };
 
-function ScoreRow({
-  label,
-  value,
-  hideIfNull = false,
-}: {
-  label: string;
-  value: number | null;
-  hideIfNull?: boolean;
-}) {
-  if (value === null) {
-    if (hideIfNull) return null;
-    return (
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-500">{label}</span>
-        <span className="text-slate-400">N/A</span>
-      </div>
-    );
-  }
-  const color =
-    value >= 75 ? "bg-green-500" : value >= 50 ? "bg-amber-500" : "bg-red-500";
-  return (
-    <div>
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-600">{label}</span>
-        <span className="font-medium text-slate-900">{value}</span>
-      </div>
-      <div className="mt-1 h-1.5 w-full rounded-full bg-slate-100">
-        <div
-          className={`h-1.5 rounded-full ${color}`}
-          style={{ width: `${value}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
 function ListBlock({ title, items }: { title: string; items?: string[] }) {
   if (!items || items.length === 0) return null;
   return (
     <div>
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <h4 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
         {title}
       </h4>
-      <ul className="mt-1 list-disc pl-5 text-sm text-slate-700">
-        {items.map((item, i) => (
-          <li key={i}>{item}</li>
-        ))}
-      </ul>
+      <div className="mt-2">
+        <TextList items={items} />
+      </div>
     </div>
   );
 }
@@ -130,7 +95,7 @@ export default function MatchingForm({
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
           No tienes un CV con texto leído todavía. El matching va a
           basarse solo en tu perfil, que es menos preciso. Te recomendamos{" "}
-          <a href="/dashboard/cv" className="underline">
+          <a href="/dashboard/cv" className="font-medium hover:text-amber-900">
             subir tu CV primero
           </a>
           .
@@ -166,7 +131,7 @@ export default function MatchingForm({
             disabled={loading || jobDescription.trim().length < 50}
             className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
           >
-            {loading ? "Analizando..." : "Analizar matching"}
+            {loading ? "Analizando…" : "Analizar matching"}
           </button>
           <button
             type="button"
@@ -181,43 +146,29 @@ export default function MatchingForm({
 
       {result && (
         <div className="mt-4 flex flex-col gap-4 border-t border-slate-100 pt-4">
-          <div>
+          <div className="flex items-center justify-between">
             <p className="text-sm text-slate-500">
               {result.cargo ?? "Cargo no identificado"}
               {result.empresa ? ` — ${result.empresa}` : ""}
             </p>
-            <p className="text-3xl font-semibold text-slate-900">
-              {result.matching_general}
-              <span className="text-base font-normal text-slate-400">
-                /100 general
-              </span>
-            </p>
           </div>
+          <ScoreRing score={result.matching_general} label="Compatibilidad general" />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <ScoreRow label="ATS" value={result.matching_ats} hideIfNull />
-            <ScoreRow label="Técnico" value={result.matching_tecnico} />
-            <ScoreRow label="Liderazgo" value={result.matching_liderazgo} />
-            <ScoreRow
-              label="Cultural (estimado)"
-              value={result.matching_cultural}
-            />
-            <ScoreRow
-              label="Experiencia"
-              value={result.matching_experiencia}
-            />
+            <ScoreBar label="ATS" score={result.matching_ats} />
+            <ScoreBar label="Técnico" score={result.matching_tecnico} />
+            <ScoreBar label="Liderazgo" score={result.matching_liderazgo} />
+            <ScoreBar label="Cultural (estimado)" score={result.matching_cultural} />
+            <ScoreBar label="Experiencia" score={result.matching_experiencia} />
           </div>
 
           <ListBlock title="Fortalezas" items={result.fortalezas} />
           <ListBlock title="Brechas" items={result.brechas} />
           <ListBlock title="Riesgos" items={result.riesgos} />
-          <ListBlock
-            title="Acciones prioritarias"
-            items={result.acciones_prioritarias}
-          />
+          <ListBlock title="Acciones prioritarias" items={result.acciones_prioritarias} />
 
           {matchId && (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 border-t border-slate-100 pt-4">
               <ConvertToOpportunityButton
                 matchId={matchId}
                 userId={userId}

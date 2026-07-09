@@ -69,7 +69,7 @@ export default function CoverLetterButton({
           </p>
           <button
             onClick={handleCopy}
-            className="mt-2 text-xs font-medium text-slate-500 underline hover:text-slate-800"
+            className="mt-2 text-xs font-medium text-slate-500 hover:text-slate-800"
           >
             {copied ? "¡Copiado!" : "Copiar texto"}
           </button>

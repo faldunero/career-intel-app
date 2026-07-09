@@ -102,9 +102,9 @@ export default function OpportunityAccordionItem({
             <p>
               <Link
                 href={`/dashboard/coach/${userId}/matching`}
-                className="text-xs text-blue-700 hover:underline"
+                className="text-xs font-medium text-slate-500 hover:text-slate-800"
               >
-                🔗 Creada desde un análisis de Matching — ver detalle completo
+                Creada desde un análisis de Matching — ver detalle completo
               </Link>
             </p>
           )}
@@ -122,7 +122,7 @@ export default function OpportunityAccordionItem({
               rel="noopener noreferrer"
               className="mt-2 inline-block text-xs text-slate-500 hover:text-slate-800"
             >
-              Ver publicación ↗
+              Ver publicación
             </a>
           )}
 

@@ -31,9 +31,9 @@ export default function DeleteMatchButton({ matchId }: { matchId: string }) {
     <button
       onClick={handleDelete}
       disabled={deleting}
-      className="text-xs font-medium text-red-500 underline hover:text-red-700 disabled:opacity-50"
+      className="text-xs font-medium text-red-500 hover:text-red-700 disabled:opacity-50"
     >
-      {deleting ? "Eliminando..." : "Eliminar"}
+      {deleting ? "Eliminando…" : "Eliminar"}
     </button>
   );
 }
