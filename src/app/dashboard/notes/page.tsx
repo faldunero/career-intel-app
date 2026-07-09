@@ -39,9 +39,14 @@ export default async function UserNotesPage() {
         {(notes ?? []).map((n) => (
           <div
             key={n.id}
-            className="rounded-xl border border-blue-100 bg-blue-50/50 p-4"
+            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
           >
-            <p className="text-sm text-slate-700">💬 {n.note}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              Tu coach
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-slate-700">
+              {n.note}
+            </p>
             <p className="mt-2 text-xs text-slate-400">
               {new Date(n.created_at).toLocaleDateString("es-CL", {
                 day: "2-digit",

@@ -154,10 +154,10 @@ function TaskRow({
     <div className="rounded-lg border border-slate-100">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm"
+        className="flex w-full items-center justify-between px-3 py-2.5 text-left"
       >
-        <div>
-          <p className="font-medium text-slate-900">{task.title}</p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-slate-900">{task.title}</p>
           <p className="mt-0.5 text-xs text-slate-400">
             {task.due_date
               ? `Vence: ${new Date(task.due_date + "T00:00:00").toLocaleDateString("es-CL")}`
@@ -166,7 +166,7 @@ function TaskRow({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {comments.length > 0 && (
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
               {comments.length} comentario{comments.length !== 1 ? "s" : ""}
             </span>
           )}
@@ -183,9 +183,9 @@ function TaskRow({
         </div>
       </button>
       {open && (
-        <div className="border-t border-slate-100 px-3 py-2">
+        <div className="border-t border-slate-100 px-3 py-3">
           {task.description && (
-            <p className="text-xs text-slate-600">{task.description}</p>
+            <p className="text-xs leading-relaxed text-slate-500">{task.description}</p>
           )}
 
           <TaskCommentThread
@@ -197,7 +197,7 @@ function TaskRow({
 
           <button
             onClick={() => onDelete(task.id)}
-            className="mt-2 text-xs font-medium text-red-500 underline hover:text-red-700"
+            className="mt-2 text-xs font-medium text-red-500 hover:text-red-700"
           >
             Eliminar
           </button>

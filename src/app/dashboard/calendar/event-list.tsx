@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import CalendarCommentThread from "./calendar-comment-thread";
+import CommentList from "@/components/cv/comment-list";
 
 const TYPE_LABELS: Record<string, string> = {
   sesion_coach: "Sesión con coach",
@@ -94,7 +95,7 @@ export default function EventList({
               {editable && (
                 <button
                   onClick={() => handleDelete(e.id)}
-                  className="shrink-0 text-xs font-medium text-red-500 underline hover:text-red-700"
+                  className="shrink-0 text-xs font-medium text-red-500 hover:text-red-700"
                 >
                   Eliminar
                 </button>
@@ -109,16 +110,11 @@ export default function EventList({
               />
             ) : (
               comments.length > 0 && (
-                <div className="mt-2 flex flex-col gap-1.5">
-                  {comments.map((c) => (
-                    <p
-                      key={c.id}
-                      className="rounded-lg bg-blue-50 px-2 py-1.5 text-xs text-slate-700"
-                    >
-                      💬 <span className="font-medium">Tu coach:</span>{" "}
-                      {c.comment}
-                    </p>
-                  ))}
+                <div className="mt-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                    Comentario de tu coach
+                  </p>
+                  <CommentList comments={comments} />
                 </div>
               )
             )}

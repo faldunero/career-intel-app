@@ -98,7 +98,7 @@ export default function NotesSection({
         )}
         {initialNotes.map((n) => (
           <div key={n.id} className="rounded-lg bg-slate-50 p-3 text-xs">
-            <p className="text-slate-700">{n.note}</p>
+            <p className="text-sm text-slate-700">{n.note}</p>
             <div className="mt-2 flex items-center justify-between">
               <p className="text-slate-400">
                 {new Date(n.created_at).toLocaleDateString("es-CL", {
@@ -112,15 +112,15 @@ export default function NotesSection({
                 disabled={togglingId === n.id}
                 className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition disabled:opacity-50 ${
                   n.visible_to_user
-                    ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                    ? "bg-green-100 text-green-700 hover:bg-green-200"
                     : "bg-slate-200 text-slate-600 hover:bg-slate-300"
                 }`}
               >
                 {togglingId === n.id
-                  ? "..."
+                  ? "…"
                   : n.visible_to_user
-                    ? "👁 Compartida — click para hacer privada"
-                    : "🔒 Privada — click para compartir"}
+                    ? "Compartida — click para hacer privada"
+                    : "Privada — click para compartir"}
               </button>
             </div>
           </div>

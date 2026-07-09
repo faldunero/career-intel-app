@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import TaskStatusSelector from "./task-status-selector";
+import CommentList from "@/components/cv/comment-list";
 
 type Task = {
   id: string;
@@ -63,9 +64,9 @@ export default function UserTaskCard({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-3 p-4 text-left"
       >
-        <div>
+        <div className="min-w-0">
           <p
-            className={`text-sm font-medium ${completed ? "text-slate-700 line-through" : "text-slate-900"}`}
+            className={`truncate text-base font-semibold ${completed ? "text-slate-600 line-through" : "text-slate-900"}`}
           >
             {task.title}
           </p>
@@ -80,7 +81,7 @@ export default function UserTaskCard({
           onClick={(e) => e.stopPropagation()}
         >
           {comments.length > 0 && (
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
               {comments.length} comentario{comments.length !== 1 ? "s" : ""}
             </span>
           )}
@@ -95,27 +96,25 @@ export default function UserTaskCard({
       {open && (
         <div className="border-t border-slate-100 px-4 py-3">
           {task.description && (
-            <p className="text-sm text-slate-600">{task.description}</p>
+            <p className="text-xs leading-relaxed text-slate-500">
+              {task.description}
+            </p>
           )}
           {comments.length > 0 && (
-            <div className="mt-2 flex flex-col gap-1.5">
-              {comments.map((c) => (
-                <p
-                  key={c.id}
-                  className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-slate-700"
-                >
-                  💬 <span className="font-medium">Tu coach:</span> {c.comment}
-                </p>
-              ))}
+            <div className="mt-3">
+              <h4 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Comentario de tu coach
+              </h4>
+              <CommentList comments={comments} />
             </div>
           )}
           {!completed && (
             <button
               onClick={handleDismiss}
               disabled={dismissing}
-              className="mt-3 text-xs font-medium text-slate-400 underline hover:text-slate-700 disabled:opacity-50"
+              className="mt-3 text-xs font-medium text-slate-400 hover:text-slate-700 disabled:opacity-50"
             >
-              {dismissing ? "Descartando..." : "Descartar (no aplica / no la voy a hacer)"}
+              {dismissing ? "Descartando…" : "Descartar (no aplica / no la voy a hacer)"}
             </button>
           )}
         </div>

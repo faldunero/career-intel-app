@@ -26,7 +26,7 @@ function ScoreBadge({ score }: { score: number | null }) {
   return (
     <Link
       href="/dashboard"
-      className="mt-4 flex items-center justify-between border border-[#333] bg-[#111] px-3 py-3 transition hover:bg-[#1a1a1a]"
+      className="mt-4 flex items-center justify-between border border-[#333] bg-[#111] px-3 py-3 transition hover:bg-[#1a1a1a] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
     >
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-widest text-[#999]">
@@ -271,19 +271,41 @@ export default function Sidebar({
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         {groups.map((group) => {
           const isOpen = openGroups[group.id] ?? true;
+          const isViewedUser = group.id === "viewed-user";
           return (
             <div key={group.id} className="mb-3">
-              <button
-                onClick={() => toggleGroup(group.id)}
-                className="flex w-full items-center justify-between px-2 py-1.5 text-left text-[11px] font-bold uppercase tracking-widest text-[#999] hover:text-white"
-              >
-                <span className="truncate">{group.title}</span>
-                <span
-                  className={`shrink-0 transition-transform ${isOpen ? "rotate-90" : ""}`}
+              {isViewedUser ? (
+                <button
+                  onClick={() => toggleGroup(group.id)}
+                  className="mb-1 flex w-full items-center justify-between border border-[#333] bg-[#161616] px-3 py-2.5 text-left transition hover:border-[#555] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 >
-                  ›
-                </span>
-              </button>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-[#999]">
+                      Viendo a
+                    </p>
+                    <p className="truncate text-sm font-semibold text-white">
+                      {group.title}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 text-[#999] transition-transform ${isOpen ? "rotate-90" : ""}`}
+                  >
+                    ›
+                  </span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => toggleGroup(group.id)}
+                  className="flex w-full items-center justify-between px-2 py-1.5 text-left text-[11px] font-bold uppercase tracking-widest text-[#b3b3b3] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                >
+                  <span className="truncate">{group.title}</span>
+                  <span
+                    className={`shrink-0 transition-transform ${isOpen ? "rotate-90" : ""}`}
+                  >
+                    ›
+                  </span>
+                </button>
+              )}
               {isOpen && (
                 <div className="mt-1 flex flex-col gap-0.5">
                   {group.items.map((item) => {
@@ -292,10 +314,10 @@ export default function Sidebar({
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center justify-between px-3 py-2 text-sm font-medium transition ${
+                        className={`flex items-center justify-between px-3 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
                           isActive(item.href)
                             ? "bg-white text-black"
-                            : "text-[#ccc] hover:bg-[#1a1a1a] hover:text-white"
+                            : "text-[#d4d4d4] hover:bg-[#1a1a1a] hover:text-white"
                         }`}
                       >
                         <span>{item.label}</span>
