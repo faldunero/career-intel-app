@@ -46,6 +46,20 @@ function daysUntil(dueAt: string) {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
+// Para una solicitud de cancelación con cuenta asociada, "resuelta"
+// significa una sola cosa: la cuenta se eliminó. Se muestra como
+// "Eliminada" en vez de "Resuelta" para que no quede ambiguo — y, más
+// importante, para que no se pueda cerrar como "resuelta" sin que la
+// eliminación haya ocurrido de verdad (ver handleMainAction).
+function isDeletionRequest(request: Request) {
+  return request.request_type === "cancelacion" && !!request.target_user_id;
+}
+
+function statusLabel(status: string, request: Request) {
+  if (status === "resuelta" && isDeletionRequest(request)) return "Eliminada";
+  return STATUS_LABELS[status] ?? status;
+}
+
 function RequestRow({ request }: { request: Request }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -63,12 +77,25 @@ function RequestRow({ request }: { request: Request }) {
   const isOpen = request.status === "pendiente" || request.status === "en_proceso";
   const overdue = isOpen && days < 0;
   const dueSoon = isOpen && days >= 0 && days <= 5;
-  const canExecuteDeletion =
-    isOpen && request.request_type === "cancelacion" && !!request.target_user_id;
 
+  const deletionCase = isDeletionRequest(request);
+  // "Selected" = lo que el admin eligió en el <select>, todavía sin guardar.
+  const selectedMeansDelete = deletionCase && status === "resuelta";
   const isClosingStatus = status === "resuelta" || status === "rechazada";
   const missingNotes = isClosingStatus && !notes.trim();
 
+  const statusOptions = deletionCase
+    ? [
+        ["pendiente", "Pendiente"],
+        ["en_proceso", "En proceso"],
+        ["resuelta", "Eliminada"],
+        ["rechazada", "Rechazada"],
+      ]
+    : Object.entries(STATUS_LABELS);
+
+  // Guarda un cambio de estado que NO implica eliminar una cuenta
+  // (pendiente / en_proceso / rechazada, o "resuelta" en solicitudes
+  // que no son de cancelación).
   async function handleSave() {
     if (missingNotes) {
       setSaveError(
@@ -95,6 +122,24 @@ function RequestRow({ request }: { request: Request }) {
     }
     setOpen(false);
     router.refresh();
+  }
+
+  // Un solo botón: si el estado elegido es "Eliminada", en vez de
+  // guardar directo pide la confirmación de ELIMINAR — no hay forma
+  // de dejar esta solicitud en "Eliminada" sin pasar por ahí.
+  function handleMainAction() {
+    if (!selectedMeansDelete) {
+      handleSave();
+      return;
+    }
+    if (!notes.trim()) {
+      setSaveError(
+        "Debes dejar un comentario con el motivo antes de eliminar la cuenta."
+      );
+      return;
+    }
+    setSaveError(null);
+    setConfirmingDelete(true);
   }
 
   async function handleExecuteDeletion() {
@@ -154,7 +199,7 @@ function RequestRow({ request }: { request: Request }) {
             </span>
           )}
           <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASS[request.status]}`}>
-            {STATUS_LABELS[request.status]}
+            {statusLabel(request.status, request)}
           </span>
           <span className={`text-slate-400 transition-transform ${open ? "rotate-90" : ""}`}>
             ›
@@ -179,7 +224,9 @@ function RequestRow({ request }: { request: Request }) {
             </div>
             {request.resolved_at && (
               <div>
-                <p className="font-semibold uppercase tracking-wide text-slate-400">Resuelta</p>
+                <p className="font-semibold uppercase tracking-wide text-slate-400">
+                  {isDeletionRequest(request) ? "Eliminada" : "Resuelta"}
+                </p>
                 <p className="mt-0.5 text-slate-700">
                   {new Date(request.resolved_at).toLocaleDateString("es-CL")}
                 </p>
@@ -193,79 +240,19 @@ function RequestRow({ request }: { request: Request }) {
             </p>
           )}
 
-          {canExecuteDeletion && (
-            <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
-                Ejecutar la eliminación
-              </p>
-              <p className="mt-1 text-xs text-red-700">
-                Esto elimina la cuenta de{" "}
-                {target?.full_name ?? target?.email ?? "este usuario"} de
-                forma permanente e inmediata, y marca esta solicitud
-                como resuelta automáticamente.
-              </p>
-
-              {!notes.trim() && (
-                <p className="mt-2 text-xs font-medium text-red-800">
-                  Antes de eliminar, escribe el motivo en &quot;Notas de
-                  resolución&quot; más abajo — queda como registro de
-                  auditoría de por qué se ejecutó esta baja.
-                </p>
-              )}
-
-              {!confirmingDelete ? (
-                <button
-                  onClick={() => setConfirmingDelete(true)}
-                  disabled={!notes.trim()}
-                  className="mt-2 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Eliminar cuenta ahora
-                </button>
-              ) : (
-                <div className="mt-2 flex flex-col gap-2">
-                  <label className="text-xs font-medium text-red-800">
-                    Escribe ELIMINAR para confirmar
-                  </label>
-                  <input
-                    value={confirmText}
-                    onChange={(e) => setConfirmText(e.target.value)}
-                    className="w-full max-w-xs rounded-lg border border-red-300 px-3 py-1.5 text-sm outline-none"
-                  />
-                  {deleteError && (
-                    <p className="text-xs text-red-700">{deleteError}</p>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleExecuteDeletion}
-                      disabled={deleting || confirmText !== "ELIMINAR"}
-                      className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
-                    >
-                      {deleting ? "Eliminando…" : "Confirmar eliminación permanente"}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setConfirmingDelete(false);
-                        setConfirmText("");
-                        setDeleteError(null);
-                      }}
-                      className="text-xs text-slate-500 hover:text-slate-800"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           <div className="mt-3 flex flex-col gap-2">
             <label className="text-xs font-medium text-slate-700">Estado</label>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-fit rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setConfirmingDelete(false);
+                setSaveError(null);
+              }}
+              disabled={!isOpen}
+              className="w-fit rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900 disabled:bg-slate-50 disabled:text-slate-400"
             >
-              {Object.entries(STATUS_LABELS).map(([key, label]) => (
+              {statusOptions.map(([key, label]) => (
                 <option key={key} value={key}>
                   {label}
                 </option>
@@ -279,25 +266,79 @@ function RequestRow({ request }: { request: Request }) {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              disabled={!isOpen}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 disabled:bg-slate-50 disabled:text-slate-400"
               placeholder="Qué se hizo para resolver esta solicitud..."
             />
-            {isClosingStatus && (
+            {isClosingStatus && isOpen && (
               <p className="text-[11px] text-slate-400">
-                Obligatorio para marcar como resuelta o rechazada — queda
-                como registro de auditoría.
+                Obligatorio para marcar como {selectedMeansDelete ? "eliminada" : "resuelta"} o
+                rechazada — queda como registro de auditoría.
+              </p>
+            )}
+
+            {selectedMeansDelete && isOpen && !confirmingDelete && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+                Esto va a eliminar la cuenta de{" "}
+                <strong>{target?.full_name ?? target?.email ?? "este usuario"}</strong>{" "}
+                de forma permanente e inmediata. Se te va a pedir
+                confirmación en el siguiente paso, y quedará registrado
+                (con aviso por correo al solicitante).
               </p>
             )}
 
             {saveError && <p className="text-xs text-red-600">{saveError}</p>}
 
-            <button
-              onClick={handleSave}
-              disabled={saving || missingNotes}
-              className="mt-1 w-fit rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-700 disabled:opacity-50"
-            >
-              {saving ? "Guardando…" : "Guardar cambios"}
-            </button>
+            {isOpen && !confirmingDelete && (
+              <button
+                onClick={handleMainAction}
+                disabled={saving}
+                className={`mt-1 w-fit rounded-lg px-3 py-1.5 text-xs font-medium text-white transition disabled:opacity-50 ${
+                  selectedMeansDelete
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-slate-900 hover:bg-slate-700"
+                }`}
+              >
+                {saving
+                  ? "Guardando…"
+                  : selectedMeansDelete
+                    ? "Continuar con la eliminación"
+                    : "Guardar cambios"}
+              </button>
+            )}
+
+            {confirmingDelete && isOpen && (
+              <div className="mt-1 flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
+                <label className="text-xs font-medium text-red-800">
+                  Escribe ELIMINAR para confirmar
+                </label>
+                <input
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  className="w-full max-w-xs rounded-lg border border-red-300 px-3 py-1.5 text-sm outline-none"
+                />
+                {deleteError && <p className="text-xs text-red-700">{deleteError}</p>}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleExecuteDeletion}
+                    disabled={deleting || confirmText !== "ELIMINAR"}
+                    className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {deleting ? "Eliminando…" : "Confirmar eliminación permanente"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setConfirmingDelete(false);
+                      setConfirmText("");
+                      setDeleteError(null);
+                    }}
+                    className="text-xs text-slate-500 hover:text-slate-800"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
