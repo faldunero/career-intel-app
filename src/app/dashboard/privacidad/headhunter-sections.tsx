@@ -44,9 +44,8 @@ export function HeadhunterOffboardingCard() {
         Otros derechos ARCO+ — Ley 21.719
       </h2>
       <p className="mt-1 text-sm text-slate-600">
-        Para rectificar tus datos, revocar tu acceso anticipadamente,
-        o ejercer cualquier otro derecho sobre tus datos personales,
-        contacta a un administrador de la plataforma.
+        Para rectificar tus datos u oponerte a algún tratamiento en
+        particular, contacta a un administrador de la plataforma.
       </p>
     </div>
   );
