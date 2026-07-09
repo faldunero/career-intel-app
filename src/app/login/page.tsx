@@ -1,28 +1,18 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import PasswordInput from "@/components/password-input";
 
-const ROLE_LABELS: Record<string, string> = {
-  administrador: "Acceso Administrador",
-  coach: "Acceso Coach",
-  usuario: "Acceso Usuario",
-};
-
-function LoginForm() {
+export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const roleParam = searchParams.get("role");
-  const heading = (roleParam && ROLE_LABELS[roleParam]) || "Iniciar sesión";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,10 +71,11 @@ function LoginForm() {
           EXECUTIVE TRANSITION
         </Link>
         <h1 className="mb-1 text-2xl font-semibold tracking-tight text-black">
-          {heading}
+          Iniciar sesión
         </h1>
         <p className="mb-6 text-sm text-[#555]">
-          Ingresa tus credenciales para continuar.
+          Un solo acceso para administradores, coaches, usuarios y
+          headhunters — tu cuenta define automáticamente qué panel ves.
         </p>
 
         <div className="flex flex-col gap-2">
@@ -169,25 +160,17 @@ function LoginForm() {
             disabled={loading}
             className="mt-2 bg-black px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#333] disabled:opacity-50"
           >
-            {loading ? "Ingresando..." : "Iniciar sesión"}
+            {loading ? "Ingresando…" : "Iniciar sesión"}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-[#555]">
           ¿No tienes cuenta?{" "}
-          <Link href="/signup" className="font-medium text-black underline">
+          <Link href="/signup" className="font-medium text-black">
             Regístrate
           </Link>
         </p>
       </div>
     </main>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={null}>
-      <LoginForm />
-    </Suspense>
   );
 }

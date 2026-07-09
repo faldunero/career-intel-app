@@ -39,26 +39,7 @@ const SERVICES = [
   },
 ];
 
-const ACCESS_CARDS = [
-  {
-    role: "administrador",
-    title: "Administrador",
-    text: "Gestión integral del programa, supervisión de coaches, análisis de resultados y administración de usuarios del sistema.",
-    cta: "Acceso Admin",
-  },
-  {
-    role: "coach",
-    title: "Coach",
-    text: "Gestión de clientes asignados, seguimiento de progreso, documentación de sesiones y reportes de avance profesional.",
-    cta: "Acceso Coach",
-  },
-  {
-    role: "usuario",
-    title: "Usuario",
-    text: "Acceso a recursos de desarrollo, seguimiento de tu progreso, comunicación con tu coach y herramientas de carrera.",
-    cta: "Acceso Usuario",
-  },
-];
+const ACCESS_ROLES = ["Administrador", "Coach", "Usuario", "Headhunter"];
 
 const VALUES = [
   {
@@ -140,14 +121,15 @@ const CSS = `
 .service-card p { color: #555; line-height: 1.8; font-size: 0.95rem; }
 .access-section { background: #f5f5f5; padding: 4rem 2rem; margin: 4rem 0; }
 .access-container { max-width: 1200px; margin: 0 auto; }
-.access-title { text-align: center; font-size: 2.2rem; margin-bottom: 3.5rem; color: #000; font-weight: 600; letter-spacing: -0.5px; }
-.access-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
-.access-card { background: #fff; padding: 2.5rem; text-align: center; transition: all 0.3s ease; }
-.access-card:hover { transform: translateY(-5px); }
-.access-card h3 { font-size: 1.4rem; margin-bottom: 1rem; color: #000; font-weight: 600; }
-.access-card p { color: #666; margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.7; }
-.access-button { background: #000; color: #fff; padding: 0.9rem 2rem; border: none; border-radius: 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.3s ease; display: inline-block; }
+.access-title { text-align: center; font-size: 2.2rem; margin-bottom: 0.75rem; color: #000; font-weight: 600; letter-spacing: -0.5px; }
+.access-roles { text-align: center; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #888; margin-bottom: 3rem; }
+.unified-access { max-width: 620px; margin: 0 auto; background: #fff; border: 1px solid #000; padding: 3.5rem 3rem; text-align: center; }
+.unified-access p { color: #555; font-size: 1rem; line-height: 1.8; margin-bottom: 2rem; max-width: 460px; margin-left: auto; margin-right: auto; }
+.access-button { background: #000; color: #fff; padding: 0.9rem 2.4rem; border: none; border-radius: 0; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.3s ease; display: inline-block; }
 .access-button:hover { background: #333; }
+.unified-access-note { margin-top: 1.75rem; font-size: 0.85rem; color: #888; }
+.unified-access-note a { color: #000; font-weight: 600; text-decoration: none; }
+.unified-access-note a:hover { color: #555; }
 .value-prop { background: #fff; padding: 4rem 2rem; margin: 4rem 0; }
 .value-prop-container { max-width: 1200px; margin: 0 auto; }
 .value-prop h2 { text-align: center; font-size: 2.2rem; margin-bottom: 3.5rem; color: #000; font-weight: 600; letter-spacing: -0.5px; }
@@ -208,8 +190,8 @@ export default function LandingPage() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   }
 
-  function handleAccess(role: string) {
-    window.location.href = `/login?role=${role}`;
+  function goToLogin() {
+    window.location.href = "/login";
   }
 
   return (
@@ -241,8 +223,8 @@ export default function LandingPage() {
               </li>
             </ul>
           </nav>
-          <button className="cta-button" onClick={scrollToAccess}>
-            Acceder
+          <button className="cta-button" onClick={goToLogin}>
+            Iniciar sesión
           </button>
         </div>
       </header>
@@ -306,20 +288,23 @@ export default function LandingPage() {
 
       <section className="access-section" id="acceso">
         <div className="access-container">
-          <h2 className="access-title">Acceso al Programa</h2>
-          <div className="access-grid">
-            {ACCESS_CARDS.map((c) => (
-              <div key={c.role} className="access-card fade-in">
-                <h3>{c.title}</h3>
-                <p>{c.text}</p>
-                <button
-                  className="access-button"
-                  onClick={() => handleAccess(c.role)}
-                >
-                  {c.cta}
-                </button>
-              </div>
-            ))}
+          <h2 className="access-title">Acceso a la Plataforma</h2>
+          <p className="access-roles">
+            {ACCESS_ROLES.join(" · ")}
+          </p>
+          <div className="unified-access fade-in">
+            <p>
+              Un solo inicio de sesión para todo el equipo. Tu cuenta
+              determina automáticamente qué panel ves — administrador,
+              coach o usuario — sin necesidad de elegir un rol.
+            </p>
+            <button className="access-button" onClick={goToLogin}>
+              Iniciar sesión
+            </button>
+            <p className="unified-access-note">
+              ¿Eres headhunter y todavía no tienes cuenta?{" "}
+              <a href="/solicitar-acceso-headhunter">Solicita acceso</a>.
+            </p>
           </div>
         </div>
       </section>

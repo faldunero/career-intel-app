@@ -314,7 +314,7 @@ export default function Sidebar({
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center justify-between px-3 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
+                        className={`flex items-center justify-between px-3 py-1.5 text-[13px] font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
                           isActive(item.href)
                             ? "bg-white text-black"
                             : "text-[#d4d4d4] hover:bg-[#1a1a1a] hover:text-white"
