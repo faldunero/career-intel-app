@@ -50,7 +50,7 @@ export default async function PsicolaboralAssignmentPage({
         href="/dashboard/psicolaboral"
         className="text-sm text-slate-500 hover:text-slate-800"
       >
-        ← Volver a herramientas psicolaborales
+        Volver a herramientas psicolaborales
       </Link>
       <h1 className="mt-3 text-2xl font-semibold text-slate-900">
         {meta.title}

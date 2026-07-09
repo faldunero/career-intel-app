@@ -62,7 +62,7 @@ export default async function HeadhunterCandidatePage({
         href="/dashboard/headhunter"
         className="text-sm text-slate-500 hover:text-slate-800"
       >
-        ← Volver a la búsqueda
+        Volver a la búsqueda
       </Link>
 
       <div className="mt-3 flex items-start justify-between gap-4">

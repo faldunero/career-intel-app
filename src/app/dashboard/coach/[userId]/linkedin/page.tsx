@@ -86,7 +86,7 @@ export default async function CoachUserLinkedinPage({
         href="/dashboard/coach"
         className="text-sm text-slate-500 hover:text-slate-800"
       >
-        ← Volver a mis usuarios
+        Volver a mis usuarios
       </Link>
       <p className="mt-3 text-sm text-slate-500">
         {profile.full_name ?? profile.email}

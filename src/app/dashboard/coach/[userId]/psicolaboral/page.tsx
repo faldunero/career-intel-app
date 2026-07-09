@@ -2,8 +2,8 @@ import Link from "next/link";
 import { getCoachViewedUser } from "@/lib/coach-guard";
 import { TOOLS, TOOL_ORDER, type ToolKey } from "@/lib/psych-tools";
 import AssignToolsPanel from "./assign-tools-panel";
-import PsychCommentThread from "./psych-comment-thread";
-import PsychResultView, { type PsychResult } from "@/components/psych/result-view";
+import PsychAccordionItem from "./psych-accordion-item";
+import { type PsychResult } from "@/components/psych/result-view";
 
 type Assignment = {
   id: string;
@@ -63,7 +63,7 @@ export default async function CoachUserPsicolaboralPage({
         href="/dashboard/coach"
         className="text-sm text-slate-500 hover:text-slate-800"
       >
-        ← Volver a mis usuarios
+        Volver a mis usuarios
       </Link>
       <p className="mt-3 text-sm text-slate-500">
         {profile.full_name ?? profile.email}
@@ -96,45 +96,23 @@ export default async function CoachUserPsicolaboralPage({
         </p>
       )}
 
-      <div className="mt-6 flex flex-col gap-6">
+      <div className="mt-6 flex flex-col gap-3">
         {TOOL_ORDER.filter((key) =>
           completed.some((a) => a.tool_key === key)
         ).map((key) => {
           const a = completed.find((x) => x.tool_key === key)!;
           return (
-            <div
+            <PsychAccordionItem
               key={a.id}
-              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
-            >
-              <div className="border-b border-slate-100 px-6 py-4">
-                <p className="text-sm font-medium text-slate-900">
-                  {TOOLS[key].title}
-                </p>
-                <p className="text-xs text-slate-400">
-                  Completado el{" "}
-                  {a.completed_at
-                    ? new Date(a.completed_at).toLocaleDateString("es-CL", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })
-                    : "—"}
-                </p>
-              </div>
-              <div className="px-6 py-5">
-                <PsychResultView result={a.result as PsychResult} />
-              </div>
-              <div className="border-t border-slate-100 px-6 py-5">
-                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                  Tu comentario
-                </h4>
-                <PsychCommentThread
-                  assignmentId={a.id}
-                  coachId={coachId}
-                  comments={commentsByAssignment.get(a.id) ?? []}
-                />
-              </div>
-            </div>
+              assignment={{
+                id: a.id,
+                title: TOOLS[key].title,
+                result: a.result as PsychResult,
+                completed_at: a.completed_at,
+              }}
+              coachId={coachId}
+              comments={commentsByAssignment.get(a.id) ?? []}
+            />
           );
         })}
       </div>
