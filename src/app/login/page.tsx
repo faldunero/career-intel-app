@@ -9,6 +9,8 @@ import PasswordInput from "@/components/password-input";
 const BACKGROUND_IMAGE =
   "https://files.manuscdn.com/user_upload_by_module/session_file/310519663591706935/ylrhIaSWKKPDepbA.jpg";
 
+const textShadow = { textShadow: "0 1px 3px rgba(0,0,0,0.5)" };
+
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -60,31 +62,44 @@ export default function LoginPage() {
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
       }}
     >
-      {/* Foto de fondo a pantalla completa */}
+      {/* Foto de fondo a pantalla completa — sin caja encima */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url('${BACKGROUND_IMAGE}')` }}
       />
-      {/* Overlay oscuro para contraste — más fuerte donde va el panel */}
-      <div className="absolute inset-0 bg-black/55" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/50" />
+      {/* Degradado suave, solo para legibilidad — sin bordes duros */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/55" />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 480px 620px at 50% 48%, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 72%)",
+        }}
+      />
 
-      {/* Panel embebido sobre la imagen — vidrio esmerilado, sin fondo blanco */}
-      <div className="relative w-full max-w-sm border border-white/25 bg-black/40 p-8 shadow-2xl backdrop-blur-xl">
+      {/* Contenido embebido directo sobre la imagen — sin panel, sin borde */}
+      <div className="relative w-full max-w-sm px-4 py-8">
         <Link
           href="/"
-          className="mb-4 inline-block text-xs text-white/60 hover:text-white"
+          className="mb-4 inline-block text-xs text-white/70 hover:text-white"
+          style={textShadow}
         >
           Volver al inicio
         </Link>
-        <p className="mb-6 text-xs font-semibold uppercase tracking-widest text-white">
+        <p
+          className="mb-6 text-xs font-semibold uppercase tracking-widest text-white"
+          style={textShadow}
+        >
           Executive Transition
         </p>
 
-        <h1 className="mb-1 text-2xl font-semibold tracking-tight text-white">
+        <h1
+          className="mb-1 text-3xl font-semibold tracking-tight text-white"
+          style={textShadow}
+        >
           Iniciar sesión
         </h1>
-        <p className="mb-6 text-sm text-white/70">
+        <p className="mb-6 text-sm text-white/80" style={textShadow}>
           Ingresa con tu cuenta para acceder a tu panel.
         </p>
 
@@ -92,7 +107,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={handleOAuth}
-            className="flex items-center justify-center gap-2 border border-white bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90"
+            className="flex items-center justify-center gap-2 border border-white bg-white px-4 py-2.5 text-sm font-medium text-black shadow-lg transition hover:bg-white/90"
           >
             <svg width="16" height="16" viewBox="0 0 48 48">
               <path
@@ -117,14 +132,19 @@ export default function LoginPage() {
         </div>
 
         <div className="my-5 flex items-center gap-3">
-          <div className="h-px flex-1 bg-white/20" />
-          <span className="text-xs text-white/50">o con tu correo</span>
-          <div className="h-px flex-1 bg-white/20" />
+          <div className="h-px flex-1 bg-white/25" />
+          <span className="text-xs text-white/60" style={textShadow}>
+            o con tu correo
+          </span>
+          <div className="h-px flex-1 bg-white/25" />
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-white">
+            <label
+              className="mb-1 block text-sm font-medium text-white"
+              style={textShadow}
+            >
               Correo electrónico
             </label>
             <input
@@ -133,19 +153,24 @@ export default function LoginPage() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder-white/40 outline-none focus:border-white"
+              className="w-full border-0 border-b border-white/40 bg-transparent px-0 py-2 text-sm text-white placeholder-white/40 outline-none focus:border-white"
+              style={textShadow}
               placeholder="tu@correo.com"
             />
           </div>
 
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <label className="block text-sm font-medium text-white">
+              <label
+                className="block text-sm font-medium text-white"
+                style={textShadow}
+              >
                 Contraseña
               </label>
               <Link
                 href="/forgot-password"
-                className="text-xs text-white/60 hover:text-white"
+                className="text-xs text-white/70 hover:text-white"
+                style={textShadow}
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -161,7 +186,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="border border-red-400/40 bg-red-500/15 px-3 py-2 text-sm text-white">
+            <p className="text-sm text-red-300" style={textShadow}>
               {error}
             </p>
           )}
@@ -169,13 +194,13 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-50"
+            className="mt-2 bg-white px-4 py-2.5 text-sm font-semibold text-black shadow-lg transition hover:bg-white/90 disabled:opacity-50"
           >
             {loading ? "Ingresando…" : "Iniciar sesión"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-white/70">
+        <p className="mt-6 text-center text-sm text-white/80" style={textShadow}>
           ¿No tienes cuenta?{" "}
           <Link href="/signup" className="font-medium text-white">
             Regístrate
