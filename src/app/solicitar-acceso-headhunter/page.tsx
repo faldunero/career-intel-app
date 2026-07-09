@@ -11,6 +11,7 @@ export default function HeadhunterRequestPage() {
   const [company, setCompany] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -23,6 +24,10 @@ export default function HeadhunterRequestPage() {
       setError("Nombre, correo y empresa son obligatorios.");
       return;
     }
+    if (!acceptedPrivacy) {
+      setError("Debes aceptar la Política de Privacidad para continuar.");
+      return;
+    }
 
     setSaving(true);
     const { error } = await supabase.from("headhunter_requests").insert({
@@ -31,6 +36,7 @@ export default function HeadhunterRequestPage() {
       company: company.trim(),
       phone: phone.trim() || null,
       message: message.trim() || null,
+      consent_accepted_at: new Date().toISOString(),
     });
     setSaving(false);
 
@@ -134,14 +140,38 @@ export default function HeadhunterRequestPage() {
               />
             </div>
 
+            <div className="border border-[#ddd] bg-[#f9f9f9] p-3">
+              <p className="text-xs leading-relaxed text-[#555]">
+                Al enviar este formulario, tratamos tus datos personales
+                (nombre, correo, empresa, teléfono) de acuerdo a la Ley
+                21.719 de Protección de Datos Personales, para evaluar y
+                gestionar tu solicitud de acceso. Puedes leer el detalle
+                en nuestra{" "}
+                <Link href="/privacidad" target="_blank" className="font-medium text-black">
+                  Política de Privacidad
+                </Link>
+                .
+              </p>
+              <label className="mt-3 flex items-start gap-2 text-xs text-[#333]">
+                <input
+                  type="checkbox"
+                  checked={acceptedPrivacy}
+                  onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                  className="mt-0.5"
+                />
+                He leído y acepto la Política de Privacidad y el
+                tratamiento de mis datos personales descrito en ella. *
+              </label>
+            </div>
+
             {error && <p className="text-xs text-red-600">{error}</p>}
 
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || !acceptedPrivacy}
               className="mt-2 bg-black px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#333] disabled:opacity-50"
             >
-              {saving ? "Enviando..." : "Enviar solicitud"}
+              {saving ? "Enviando…" : "Enviar solicitud"}
             </button>
           </form>
         )}

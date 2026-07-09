@@ -5,6 +5,7 @@ import ExportDataCard from "./export-data-card";
 import { HeadhunterVisibilityCard, SelfDeleteAccountCard } from "./usuario-sections";
 import { NoteVisibilityInfoCard, CoachOffboardingCard } from "./coach-sections";
 import { AdminArcoLinkCard } from "./admin-sections";
+import { HeadhunterAccessInfoCard, HeadhunterOffboardingCard } from "./headhunter-sections";
 
 export default async function PrivacyRightsPage() {
   const supabase = await createClient();
@@ -19,7 +20,7 @@ export default async function PrivacyRightsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, headhunter_access_expires_at")
     .eq("id", user.id)
     .single();
 
@@ -71,18 +72,12 @@ export default async function PrivacyRightsPage() {
       {role === "headhunter" && (
         <>
           <div className="mt-6">
-            <ExportDataCard description="Descarga una copia de tu perfil y tus datos de cuenta en formato JSON." />
+            <ExportDataCard description="Descarga una copia de tu perfil, tu solicitud de acceso y tu historial de descargas de CV en formato JSON." />
           </div>
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6">
-            <h2 className="text-lg font-medium text-slate-900">
-              Otros derechos ARCO+ — Ley 21.719
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Para rectificar, eliminar tu cuenta, o ejercer cualquier
-              otro derecho sobre tus datos personales, contacta a un
-              administrador de la plataforma.
-            </p>
-          </div>
+          <HeadhunterAccessInfoCard
+            expiresAt={profile?.headhunter_access_expires_at ?? null}
+          />
+          <HeadhunterOffboardingCard />
         </>
       )}
     </div>

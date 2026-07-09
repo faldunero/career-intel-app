@@ -35,7 +35,42 @@ export async function GET() {
     return exportForCoach(user, profile);
   }
 
+  if (role === "headhunter") {
+    return exportForHeadhunter(user, profile);
+  }
+
   return exportForUsuario(user, profile);
+
+  // ---------------------------------------------------------------
+  async function exportForHeadhunter(
+    user: { id: string; email?: string },
+    profile: Record<string, unknown> | null
+  ) {
+    const [myRequest, myDownloads] = await Promise.all([
+      supabase
+        .from("headhunter_requests")
+        .select("*")
+        .eq("email", user.email ?? "")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("headhunter_cv_downloads")
+        .select("id, downloaded_at, candidate:profiles!candidate_user_id(full_name)")
+        .eq("headhunter_id", user.id),
+    ]);
+
+    const exportData = {
+      exportado_el: new Date().toISOString(),
+      nota: "Como headhunter, esta exportación incluye tu perfil, la solicitud de acceso que enviaste, y el historial de CVs que descargaste. No incluye los datos de los candidatos — esos les pertenecen a ellos.",
+      cuenta: { id: user.id, email: user.email },
+      perfil: profile,
+      mi_solicitud_de_acceso: myRequest.data,
+      mis_descargas_de_cv: myDownloads.data,
+    };
+
+    return NextResponse.json(exportData, {
+      headers: { "Content-Disposition": 'attachment; filename="mis-datos.json"' },
+    });
+  }
 
   // ---------------------------------------------------------------
   async function exportForUsuario(
