@@ -54,7 +54,7 @@ export async function middleware(request: NextRequest) {
     // tiene que cambiarla antes de cualquier otra cosa.
     const { data: profile } = await supabase
       .from("profiles")
-      .select("must_change_password")
+      .select("must_change_password, skip_mfa")
       .eq("id", user.id)
       .single();
 
@@ -63,6 +63,11 @@ export async function middleware(request: NextRequest) {
     }
     if (!profile?.must_change_password && isForcePasswordRoute) {
       return redirectTo("/mfa-setup");
+    }
+
+    // Si skip_mfa es true (usuarios QA), saltar todas las validaciones de MFA
+    if (profile?.skip_mfa) {
+      return supabaseResponse;
     }
 
     // Paso 2: 2FA obligatorio para todas las cuentas — si todavía no
