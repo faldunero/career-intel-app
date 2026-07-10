@@ -36,10 +36,35 @@ export async function DELETE(
     );
   }
 
-  const { error } = await admin.auth.admin.deleteUser(id);
+  // Intenta eliminar el usuario con reintentos automáticos
+  let deleteError = null;
+  const maxRetries = 3;
+  const baseDelay = 1000;
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const { error } = await admin.auth.admin.deleteUser(id);
+
+    if (!error) {
+      deleteError = null;
+      break;
+    }
+
+    if (attempt === maxRetries - 1) {
+      deleteError = error;
+      break;
+    }
+
+    const delay = baseDelay * Math.pow(2, attempt);
+    console.log(
+      `admin-delete-admin: reintentando deleteUser (intento ${attempt + 1}/${maxRetries})`,
+      error
+    );
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+
+  if (deleteError) {
+    console.error("admin-delete-admin: falló deleteUser", deleteError);
+    return NextResponse.json({ error: deleteError.message }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

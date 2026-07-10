@@ -27,6 +27,9 @@ export async function POST(request: Request) {
   const deleted: string[] = [];
   const skipped: { id: string; reason: string }[] = [];
 
+  const maxRetries = 3;
+  const baseDelay = 1000;
+
   for (const id of ids) {
     const target = (targets ?? []).find((t) => t.id === id);
 
@@ -43,9 +46,27 @@ export async function POST(request: Request) {
       continue;
     }
 
-    const { error } = await admin.auth.admin.deleteUser(id);
-    if (error) {
-      skipped.push({ id, reason: error.message });
+    // Intenta eliminar el usuario con reintentos automáticos
+    let deleteError = null;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const { error } = await admin.auth.admin.deleteUser(id);
+
+      if (!error) {
+        deleteError = null;
+        break;
+      }
+
+      if (attempt === maxRetries - 1) {
+        deleteError = error;
+        break;
+      }
+
+      const delay = baseDelay * Math.pow(2, attempt);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
+    if (deleteError) {
+      skipped.push({ id, reason: deleteError.message });
     } else {
       deleted.push(id);
     }

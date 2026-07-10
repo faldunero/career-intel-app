@@ -25,10 +25,30 @@ export async function POST() {
   // (profiles, cvs, coach_assignments, comentarios, etc.) se limpian
   // en cascada por las mismas referencias "on delete cascade" que ya
   // usa el borrado de cuenta normal (/api/account/delete).
+  const maxRetries = 3;
+  const baseDelay = 1000;
+
   for (const id of ids) {
-    const { error } = await admin.auth.admin.deleteUser(id);
-    if (error) {
-      errors.push(`${id}: ${error.message}`);
+    let deleteError = null;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const { error } = await admin.auth.admin.deleteUser(id);
+
+      if (!error) {
+        deleteError = null;
+        break;
+      }
+
+      if (attempt === maxRetries - 1) {
+        deleteError = error;
+        break;
+      }
+
+      const delay = baseDelay * Math.pow(2, attempt);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
+    if (deleteError) {
+      errors.push(`${id}: ${deleteError.message}`);
     } else {
       deleted++;
     }

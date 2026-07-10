@@ -111,11 +111,49 @@ export async function POST(request: Request) {
       );
     }
 
-    const { error: deleteError } = await admin.auth.admin.deleteUser(targetId);
+    // Intenta eliminar el usuario con reintentos automáticos
+    // Los errores transitorios de Supabase (500, network timeouts) pueden resolverse
+    // con reintentos. El error "AuthRetryableFetchError" indica que el error es retryable.
+    let deleteError = null;
+    let lastError = null;
+    const maxRetries = 3;
+    const baseDelay = 1000; // 1 segundo
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const { error } = await admin.auth.admin.deleteUser(targetId);
+
+      if (!error) {
+        deleteError = null;
+        break;
+      }
+
+      lastError = error;
+
+      // Si es el último intento o el error no es retryable, detente
+      if (attempt === maxRetries - 1) {
+        deleteError = error;
+        break;
+      }
+
+      // Espera con backoff exponencial antes de reintentar
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.log(
+        `execute-deletion: reintentando deleteUser (intento ${attempt + 1}/${maxRetries}) en ${delay}ms`,
+        error
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
     if (deleteError) {
-      console.error("execute-deletion: falló deleteUser", deleteError);
+      console.error("execute-deletion: falló deleteUser después de reintentos", {
+        error: deleteError,
+        attempts: maxRetries,
+        lastError,
+      });
       return NextResponse.json(
-        { error: `No se pudo eliminar la cuenta: ${deleteError.message}` },
+        {
+          error: `No se pudo eliminar la cuenta: ${deleteError.message || "Error del servidor"}`,
+        },
         { status: 500 }
       );
     }
