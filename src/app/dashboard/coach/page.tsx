@@ -59,12 +59,26 @@ export default async function CoachPage() {
 
   const coachId = user.id;
 
-  const { data: assignments } = await supabase
+  // Obtener assignments y perfiles usando dos queries separados
+  const { data: assignmentRows } = await supabase
     .from("coach_assignments")
-    .select(
-      "user_id, profiles:user_id (id, full_name, email, profile_completed, career_score)"
-    )
+    .select("user_id")
     .eq("coach_id", coachId);
+
+  const userIds = assignmentRows?.map((a) => a.user_id) ?? [];
+
+  let assignments: any[] = [];
+  if (userIds.length > 0) {
+    const { data: profileRows } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, profile_completed, career_score")
+      .in("id", userIds);
+
+    assignments = assignmentRows?.map((a) => ({
+      user_id: a.user_id,
+      profiles: profileRows?.find((p) => p.id === a.user_id),
+    })) ?? [];
+  }
 
   const assigned = assignments ?? [];
   const userIds = assigned.map((a) => a.user_id);
