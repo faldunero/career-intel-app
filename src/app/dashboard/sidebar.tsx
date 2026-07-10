@@ -59,62 +59,82 @@ export default function Sidebar({
   const pathname = usePathname();
   const supabase = createClient();
 
-  const viewedUserMatch = pathname.match(/^\/dashboard\/coach\/([0-9a-f-]{36})/);
-  const viewedUserId = viewedUserMatch?.[1] ?? null;
-
   // Para coaches: cargar lista de usuarios asignados
   const [coachUsers, setCoachUsers] = useState<CoachUser[]>([]);
   const [userInterviewBadges, setUserInterviewBadges] = useState<Record<string, number>>({});
+
+  const viewedUserMatch = pathname.match(/^\/dashboard\/coach\/([0-9a-f-]{36})/);
+  const viewedUserId = viewedUserMatch?.[1] ?? null;
+
+  // Obtener el nombre del usuario que se está viendo
+  const viewedUserName =
+    viewedUserId && coachUsers.length > 0
+      ? coachUsers.find((u) => u.id === viewedUserId)?.full_name ?? null
+      : null;
 
   useEffect(() => {
     let cancelled = false;
 
     // Para coaches: cargar usuarios asignados
     if (role === "coach") {
-      supabase
-        .from("coach_assignments")
-        .select("user_id, profiles!inner(id, full_name, email)")
-        .then(({ data: assignments }) => {
-          if (!cancelled && assignments) {
-            const users = assignments.map((a) => ({
-              id: a.profiles.id,
-              full_name: a.profiles.full_name ?? a.profiles.email,
-              email: a.profiles.email,
-            }));
-            setCoachUsers(users);
+      (async () => {
+        // Paso 1: obtener IDs de usuarios asignados
+        const { data: assignmentRows } = await supabase
+          .from("coach_assignments")
+          .select("user_id");
 
-            // Cargar badges para cada usuario
-            const badges: Record<string, number> = {};
-            Promise.all(
-              users.map(async (user) => {
-                const { data: sessions } = await supabase
-                  .from("interview_sessions")
-                  .select("id")
-                  .eq("user_id", user.id)
-                  .eq("status", "completada");
+        const userIds = assignmentRows?.map((a) => a.user_id) ?? [];
 
-                if (!sessions || sessions.length === 0) {
-                  badges[user.id] = 0;
-                  return;
-                }
+        if (userIds.length === 0) {
+          if (!cancelled) setCoachUsers([]);
+          return;
+        }
 
-                const sessionIds = sessions.map((s) => s.id);
-                const { data: comments } = await supabase
-                  .from("interview_comments")
-                  .select("session_id")
-                  .in("session_id", sessionIds);
+        // Paso 2: obtener datos de perfiles
+        const { data: profileRows } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", userIds);
 
-                const commented = new Set(
-                  (comments ?? []).map((c) => c.session_id)
-                );
-                const pending = sessionIds.filter((id) => !commented.has(id));
-                badges[user.id] = pending.length;
-              })
-            ).then(() => {
-              if (!cancelled) setUserInterviewBadges(badges);
-            });
-          }
-        });
+        if (!cancelled && profileRows) {
+          const users = profileRows.map((p) => ({
+            id: p.id,
+            full_name: p.full_name ?? p.email,
+            email: p.email,
+          }));
+          setCoachUsers(users);
+
+          // Cargar badges para cada usuario
+          const badges: Record<string, number> = {};
+          await Promise.all(
+            users.map(async (user) => {
+              const { data: sessions } = await supabase
+                .from("interview_sessions")
+                .select("id")
+                .eq("user_id", user.id)
+                .eq("status", "completada");
+
+              if (!sessions || sessions.length === 0) {
+                badges[user.id] = 0;
+                return;
+              }
+
+              const sessionIds = sessions.map((s) => s.id);
+              const { data: comments } = await supabase
+                .from("interview_comments")
+                .select("session_id")
+                .in("session_id", sessionIds);
+
+              const commented = new Set(
+                (comments ?? []).map((c) => c.session_id)
+              );
+              const pending = sessionIds.filter((id) => !commented.has(id));
+              badges[user.id] = pending.length;
+            })
+          );
+          if (!cancelled) setUserInterviewBadges(badges);
+        }
+      })();
     }
 
     return () => {
