@@ -4,13 +4,15 @@ import { requireHeadhunter } from "@/lib/require-headhunter";
 export default async function HeadhunterSearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; industry?: string; cargo?: string }>;
+  searchParams: Promise<{ nombre?: string; cargo?: string; rubro?: string; ciudad?: string; seniority?: string }>;
 }) {
   const { supabase } = await requireHeadhunter();
   const params = await searchParams;
-  const q = params.q?.trim() ?? "";
-  const industry = params.industry?.trim() ?? "";
+  const nombre = params.nombre?.trim() ?? "";
   const cargo = params.cargo?.trim() ?? "";
+  const rubro = params.rubro?.trim() ?? "";
+  const ciudad = params.ciudad?.trim() ?? "";
+  const seniority = params.seniority?.trim() ?? "";
 
   let query = supabase
     .from("profiles")
@@ -20,18 +22,31 @@ export default async function HeadhunterSearchPage({
     .eq("visible_to_headhunters", true)
     .eq("role", "usuario");
 
-  if (q) {
-    query = query.or(
-      `full_name.ilike.%${q}%,current_position.ilike.%${q}%,target_role.ilike.%${q}%`
-    );
+  // Filtro por nombre (busca en nombre completo)
+  if (nombre) {
+    query = query.ilike("full_name", `%${nombre}%`);
   }
-  if (industry) {
-    query = query.ilike("industry", `%${industry}%`);
-  }
+
+  // Filtro por cargo (busca en cargo actual Y cargo objetivo)
   if (cargo) {
     query = query.or(
       `current_position.ilike.%${cargo}%,target_role.ilike.%${cargo}%`
     );
+  }
+
+  // Filtro por rubro/industria
+  if (rubro) {
+    query = query.ilike("industry", `%${rubro}%`);
+  }
+
+  // Filtro por ciudad
+  if (ciudad) {
+    query = query.ilike("city", `%${ciudad}%`);
+  }
+
+  // Filtro por seniority (nivel de experiencia)
+  if (seniority) {
+    query = query.eq("seniority", seniority);
   }
 
   const { data: candidates } = await query.order("career_score", {
@@ -51,34 +66,84 @@ export default async function HeadhunterSearchPage({
 
       <form
         method="get"
-        className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
       >
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="Nombre o cargo..."
-          className="min-w-48 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
-        />
-        <input
-          type="text"
-          name="industry"
-          defaultValue={industry}
-          placeholder="Rubro (ej: Tecnología)"
-          className="min-w-40 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
-        />
-        <input
-          type="text"
-          name="cargo"
-          defaultValue={cargo}
-          placeholder="Cargo (ej: Gerente TI)"
-          className="min-w-40 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
-        />
+        <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
+              Nombre del candidato
+            </label>
+            <input
+              type="text"
+              name="nombre"
+              defaultValue={nombre}
+              placeholder="ej: Juan Pérez"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
+              Cargo (actual o objetivo)
+            </label>
+            <input
+              type="text"
+              name="cargo"
+              defaultValue={cargo}
+              placeholder="ej: Gerente TI"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
+              Rubro/Industria
+            </label>
+            <input
+              type="text"
+              name="rubro"
+              defaultValue={rubro}
+              placeholder="ej: Tecnología, Finanzas"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
+              Ciudad
+            </label>
+            <input
+              type="text"
+              name="ciudad"
+              defaultValue={ciudad}
+              placeholder="ej: Santiago, Buenos Aires"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
+              Nivel de experiencia
+            </label>
+            <select
+              name="seniority"
+              defaultValue={seniority}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+            >
+              <option value="">Cualquiera</option>
+              <option value="junior">Junior (0-2 años)</option>
+              <option value="mid">Pleno (2-5 años)</option>
+              <option value="senior">Senior (5-10 años)</option>
+              <option value="lead">Lead (10+ años)</option>
+            </select>
+          </div>
+        </div>
+
         <button
           type="submit"
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+          className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 md:w-auto"
         >
-          Buscar
+          Buscar candidatos
         </button>
       </form>
 
