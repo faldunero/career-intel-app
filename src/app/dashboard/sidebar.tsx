@@ -45,6 +45,8 @@ function ScoreBadge({ score }: { score: number | null }) {
   );
 }
 
+type CoachUser = { id: string; full_name: string; email: string };
+
 export default function Sidebar({
   role,
   careerScore,
@@ -59,62 +61,75 @@ export default function Sidebar({
 
   const viewedUserMatch = pathname.match(/^\/dashboard\/coach\/([0-9a-f-]{36})/);
   const viewedUserId = viewedUserMatch?.[1] ?? null;
-  const [viewedUserName, setViewedUserName] = useState<string | null>(null);
-  const [viewedUserInterviewBadge, setViewedUserInterviewBadge] = useState(0);
+
+  // Para coaches: cargar lista de usuarios asignados
+  const [coachUsers, setCoachUsers] = useState<CoachUser[]>([]);
+  const [userInterviewBadges, setUserInterviewBadges] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    if (!viewedUserId) {
-      setViewedUserName(null);
-      setViewedUserInterviewBadge(0);
-      return;
-    }
     let cancelled = false;
 
-    supabase
-      .from("profiles")
-      .select("full_name, email")
-      .eq("id", viewedUserId)
-      .single()
-      .then(({ data }) => {
-        if (!cancelled) {
-          setViewedUserName(data?.full_name ?? data?.email ?? "Usuario");
-        }
-      });
+    // Para coaches: cargar usuarios asignados
+    if (role === "coach") {
+      supabase
+        .from("coach_assignments")
+        .select("user_id, profiles!inner(id, full_name, email)")
+        .then(({ data: assignments }) => {
+          if (!cancelled && assignments) {
+            const users = assignments.map((a) => ({
+              id: a.profiles.id,
+              full_name: a.profiles.full_name ?? a.profiles.email,
+              email: a.profiles.email,
+            }));
+            setCoachUsers(users);
 
-    // Entrevistas completadas de ESTE usuario que el coach aún no
-    // comentó (subconjunto del total que se ve en "Mis usuarios
-    // asignados").
-    supabase
-      .from("interview_sessions")
-      .select("id")
-      .eq("user_id", viewedUserId)
-      .eq("status", "completada")
-      .then(async ({ data: sessions }) => {
-        if (cancelled || !sessions || sessions.length === 0) {
-          if (!cancelled) setViewedUserInterviewBadge(0);
-          return;
-        }
-        const sessionIds = sessions.map((s) => s.id);
-        const { data: comments } = await supabase
-          .from("interview_comments")
-          .select("session_id")
-          .in("session_id", sessionIds);
-        const commented = new Set((comments ?? []).map((c) => c.session_id));
-        const pending = sessionIds.filter((id) => !commented.has(id));
-        if (!cancelled) setViewedUserInterviewBadge(pending.length);
-      });
+            // Cargar badges para cada usuario
+            const badges: Record<string, number> = {};
+            Promise.all(
+              users.map(async (user) => {
+                const { data: sessions } = await supabase
+                  .from("interview_sessions")
+                  .select("id")
+                  .eq("user_id", user.id)
+                  .eq("status", "completada");
+
+                if (!sessions || sessions.length === 0) {
+                  badges[user.id] = 0;
+                  return;
+                }
+
+                const sessionIds = sessions.map((s) => s.id);
+                const { data: comments } = await supabase
+                  .from("interview_comments")
+                  .select("session_id")
+                  .in("session_id", sessionIds);
+
+                const commented = new Set(
+                  (comments ?? []).map((c) => c.session_id)
+                );
+                const pending = sessionIds.filter((id) => !commented.has(id));
+                badges[user.id] = pending.length;
+              })
+            ).then(() => {
+              if (!cancelled) setUserInterviewBadges(badges);
+            });
+          }
+        });
+    }
 
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewedUserId]);
+  }, [role]);
 
   const badges: Record<string, number> = { ...serverBadges };
-  if (viewedUserId && viewedUserInterviewBadge > 0) {
-    badges[`/dashboard/coach/${viewedUserId}/entrevistas`] =
-      viewedUserInterviewBadge;
-  }
+  // Agregar badges de entrevistas para cada usuario del coach
+  Object.entries(userInterviewBadges).forEach(([userId, count]) => {
+    if (count > 0) {
+      badges[`/dashboard/coach/${userId}/entrevistas`] = count;
+    }
+  });
 
   const groups: NavGroup[] = [];
 
@@ -149,24 +164,12 @@ export default function Sidebar({
       ],
     });
   } else if (role === "coach") {
-    groups.push({
-      id: "coach",
-      title: "Coach",
-      items: [
-        {
-          label: "Mis usuarios asignados",
-          href: "/dashboard/coach",
-          badgeTitle: "entrevistas por comentar entre tus usuarios",
-          dotOnly: true,
-        },
-      ],
-    });
-
-    if (viewedUserId) {
-      const base = `/dashboard/coach/${viewedUserId}`;
+    // Para cada usuario asignado, crear un grupo con sus items
+    coachUsers.forEach((user) => {
+      const base = `/dashboard/coach/${user.id}`;
       groups.push({
-        id: "viewed-user",
-        title: viewedUserName ?? "Usuario en vista",
+        id: `user-${user.id}`,
+        title: user.full_name || user.email,
         items: [
           { label: "CV", href: `${base}/cv` },
           { label: "LinkedIn", href: `${base}/linkedin` },
@@ -174,12 +177,16 @@ export default function Sidebar({
           { label: "CRM", href: `${base}/crm` },
           { label: "Calendario", href: `${base}/calendario` },
           { label: "Tareas", href: `${base}/tareas` },
-          { label: "Entrevistas", href: `${base}/entrevistas`, badgeTitle: "entrevistas por comentar" },
+          {
+            label: "Entrevistas",
+            href: `${base}/entrevistas`,
+            badgeTitle: "entrevistas por comentar",
+          },
           { label: "Notas", href: `${base}/notas` },
           { label: "Psicolaboral", href: `${base}/psicolaboral` },
         ],
       });
-    }
+    });
   } else if (role === "headhunter") {
     groups.push({
       id: "headhunter",
