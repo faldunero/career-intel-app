@@ -164,12 +164,24 @@ export default function Sidebar({
       ],
     });
   } else if (role === "coach") {
-    // Para cada usuario asignado, crear un grupo con sus items
-    coachUsers.forEach((user) => {
-      const base = `/dashboard/coach/${user.id}`;
+    groups.push({
+      id: "coach",
+      title: "Coach",
+      items: [
+        {
+          label: "Mis usuarios asignados",
+          href: "/dashboard/coach",
+          badgeTitle: "entrevistas por comentar entre tus usuarios",
+          dotOnly: true,
+        },
+      ],
+    });
+
+    if (viewedUserId) {
+      const base = `/dashboard/coach/${viewedUserId}`;
       groups.push({
-        id: `user-${user.id}`,
-        title: user.full_name || user.email,
+        id: "viewed-user",
+        title: viewedUserName ?? "Usuario en vista",
         items: [
           { label: "CV", href: `${base}/cv` },
           { label: "LinkedIn", href: `${base}/linkedin` },
@@ -177,16 +189,12 @@ export default function Sidebar({
           { label: "CRM", href: `${base}/crm` },
           { label: "Calendario", href: `${base}/calendario` },
           { label: "Tareas", href: `${base}/tareas` },
-          {
-            label: "Entrevistas",
-            href: `${base}/entrevistas`,
-            badgeTitle: "entrevistas por comentar",
-          },
+          { label: "Entrevistas", href: `${base}/entrevistas`, badgeTitle: "entrevistas por comentar" },
           { label: "Notas", href: `${base}/notas` },
           { label: "Psicolaboral", href: `${base}/psicolaboral` },
         ],
       });
-    });
+    }
   } else if (role === "headhunter") {
     groups.push({
       id: "headhunter",
